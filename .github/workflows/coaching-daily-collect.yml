@@ -1,0 +1,67 @@
+name: Coaching Daily Collect
+
+on:
+  schedule:
+    # 06:00 America/Bogota (UTC-5) ≈ 11:00 UTC
+    - cron: "0 11 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install coaching dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[coaching]"
+
+      - name: Restore Garmin tokens
+        env:
+          GARMINTOKENS_B64: ${{ secrets.GARMINTOKENS_B64 }}
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+        run: |
+          mkdir -p "$HOME/.garminconnect"
+          if [ -n "$GARMINTOKENS_B64" ]; then
+            echo "$GARMINTOKENS_B64" | base64 -d | tar xzf - -C "$HOME/.garminconnect"
+          fi
+
+      - name: Collect and upsert to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+          GARMINTOKENS: ~/.garminconnect
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          sys.path.insert(0, "scripts")
+          from garmin_auth import login_client
+          from garmin_coaching.collector import build_daily_payload
+          from services.collector.supabase_client import upsert_daily_payload
+
+          client = login_client(prompt=False)
+          payload = build_daily_payload(client)
+          result = upsert_daily_payload(payload)
+          print(json.dumps({
+              "upsert": result,
+              "zone": payload["readiness"]["zone"],
+              "acwr": payload["training_load"].get("acwr"),
+              "guards": payload["session"].get("guard_flags"),
+          }, indent=2))
+          PY

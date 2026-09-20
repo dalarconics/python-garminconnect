@@ -1,0 +1,135 @@
+-- Fitness Coaching MVP schema (single-user MVP; service role from worker)
+
+create extension if not exists "pgcrypto";
+
+-- Fixed MVP user id (replace in phase 2 with auth.users)
+-- Diego single-user: 00000000-0000-0000-0000-000000000001
+
+create table if not exists public.users (
+    id uuid primary key default '00000000-0000-0000-0000-000000000001'::uuid,
+    name text not null default 'Diego',
+    timezone text not null default 'America/Bogota',
+    created_at timestamptz not null default now()
+);
+
+insert into public.users (id, name) values ('00000000-0000-0000-0000-000000000001', 'Diego')
+on conflict (id) do nothing;
+
+create table if not exists public.event_milestones (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    code text not null,
+    name text not null,
+    event_date date not null,
+    notes text,
+    created_at timestamptz not null default now(),
+    unique (user_id, code)
+);
+
+create table if not exists public.macrocycle_phases (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    code text not null,
+    name text not null,
+    start_date date not null,
+    end_date date not null,
+    focus text,
+    sport text,
+    hr_cap int,
+    max_duration_min int,
+    created_at timestamptz not null default now(),
+    unique (user_id, code)
+);
+
+create table if not exists public.daily_snapshots (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    snapshot_date date not null,
+    payload jsonb not null,
+    health_score numeric,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, snapshot_date)
+);
+
+create table if not exists public.readiness_daily (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    readiness_date date not null,
+    zone text not null,
+    score_ok int,
+    sleep_h numeric,
+    sleep_score numeric,
+    hrv numeric,
+    stress numeric,
+    bb_change numeric,
+    hrv_status text,
+    thresholds jsonb,
+    recommendation text,
+    payload jsonb,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, readiness_date)
+);
+
+create table if not exists public.training_load (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    load_date date not null,
+    status_phrase text,
+    acwr numeric,
+    vo2max numeric,
+    lthr jsonb,
+    payload jsonb,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, load_date)
+);
+
+create table if not exists public.coaching_messages (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    message_date date not null,
+    channel text not null default 'whatsapp',
+    body text not null,
+    session jsonb,
+    guard_flags text[],
+    sent_at timestamptz,
+    reply text,
+    reply_at timestamptz,
+    created_at timestamptz not null default now()
+);
+
+create table if not exists public.session_log (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    session_date date not null,
+    planned jsonb,
+    executed jsonb,
+    confirmed boolean default false,
+    notes text,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, session_date)
+);
+
+create index if not exists idx_daily_snapshots_date on public.daily_snapshots (user_id, snapshot_date desc);
+create index if not exists idx_readiness_daily_date on public.readiness_daily (user_id, readiness_date desc);
+create index if not exists idx_coaching_messages_date on public.coaching_messages (user_id, message_date desc);
+
+-- RLS (MVP: service role bypasses; anon read in phase 2)
+alter table public.daily_snapshots enable row level security;
+alter table public.readiness_daily enable row level security;
+alter table public.training_load enable row level security;
+alter table public.coaching_messages enable row level security;
+alter table public.session_log enable row level security;
+alter table public.event_milestones enable row level security;
+alter table public.macrocycle_phases enable row level security;
+
+create policy "service_role_all" on public.daily_snapshots for all using (true) with check (true);
+create policy "service_role_all" on public.readiness_daily for all using (true) with check (true);
+create policy "service_role_all" on public.training_load for all using (true) with check (true);
+create policy "service_role_all" on public.coaching_messages for all using (true) with check (true);
+create policy "service_role_all" on public.session_log for all using (true) with check (true);
+create policy "service_role_all" on public.event_milestones for all using (true) with check (true);
+create policy "service_role_all" on public.macrocycle_phases for all using (true) with check (true);

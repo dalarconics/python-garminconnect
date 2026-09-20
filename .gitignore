@@ -123,6 +123,14 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
+# Node / Next.js
+node_modules/
+apps/web/.next/
+apps/web/.vercel/
+
+# Supabase CLI local state
+supabase/.temp/
+
 # Environments
 .env
 .env.local

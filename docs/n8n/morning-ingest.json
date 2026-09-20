@@ -1,0 +1,136 @@
+{
+  "name": "Fitness Coach - Morning Ingest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-0600-bogota",
+      "name": "Cron 06:00 Bogota",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "notes": "Set timezone America/Bogota in workflow settings"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.COLLECTOR_URL }}/collect",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "write_supabase",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "http-collect",
+      "name": "POST Collector /collect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "guard-check",
+              "leftValue": "={{ $json.guard_flags.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-guards",
+      "name": "Guards Active?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "tableId": "coaching_messages",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "user_id",
+              "fieldValue": "00000000-0000-0000-0000-000000000001"
+            },
+            {
+              "fieldId": "message_date",
+              "fieldValue": "={{ $json.date }}"
+            },
+            {
+              "fieldId": "channel",
+              "fieldValue": "whatsapp"
+            },
+            {
+              "fieldId": "body",
+              "fieldValue": "={{ $json.whatsapp_preview }}"
+            },
+            {
+              "fieldId": "guard_flags",
+              "fieldValue": "={{ $json.guard_flags }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-message",
+      "name": "Supabase coaching_messages",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [960, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "CONFIGURE_ME",
+          "name": "Supabase fitness-coach-diego"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 06:00 Bogota": {
+      "main": [[{ "node": "POST Collector /collect", "type": "main", "index": 0 }]]
+    },
+    "POST Collector /collect": {
+      "main": [[{ "node": "Guards Active?", "type": "main", "index": 0 }]]
+    },
+    "Guards Active?": {
+      "main": [
+        [{ "node": "Supabase coaching_messages", "type": "main", "index": 0 }],
+        [{ "node": "Supabase coaching_messages", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "America/Bogota",
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

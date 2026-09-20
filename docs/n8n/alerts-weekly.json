@@ -1,0 +1,154 @@
+{
+  "name": "Fitness Coach - Alerts and Weekly Review",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-daily-alerts",
+      "name": "Daily Alerts 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.COLLECTOR_URL }}/collect",
+        "options": { "timeout": 120000 }
+      },
+      "id": "collect-check",
+      "name": "Collect for Alerts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst flags = item.guard_flags || [];\nconst alerts = [];\nif (flags.includes('overreaching')) alerts.push('ALERTA: OVERREACHING — descanso 48h obligatorio.');\nif (flags.includes('acwr_very_high')) alerts.push('ALERTA: ACWR muy alto — solo descanso.');\nif (item.zone === 'ROJO') alerts.push('ALERTA: Readiness ROJO — no entrenar duro hoy.');\nif (alerts.length === 0) return [];\nreturn [{ json: { to: $env.WHATSAPP_TO, body: alerts.join('\\n\\n') } }];"
+      },
+      "id": "build-alerts",
+      "name": "Build Alert Messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "to", "value": "={{ $json.to }}" },
+            { "name": "body", "value": "={{ $json.body }}" }
+          ]
+        }
+      },
+      "id": "send-alert",
+      "name": "Send Alert WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 18 * * 0"
+            }
+          ]
+        }
+      },
+      "id": "cron-sunday-review",
+      "name": "Sunday 18:00 Review",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [200, 480]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "readiness_daily",
+        "returnAll": false,
+        "limit": 7,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "00000000-0000-0000-0000-000000000001"
+            }
+          ]
+        },
+        "options": {
+          "sort": {
+            "fields": [{ "field": "readiness_date", "direction": "desc" }]
+          }
+        }
+      },
+      "id": "fetch-week",
+      "name": "Last 7 Days Readiness",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [440, 480],
+      "credentials": {
+        "supabaseApi": {
+          "id": "CONFIGURE_ME",
+          "name": "Supabase fitness-coach-diego"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\nconst verde = rows.filter(r => r.zone === 'VERDE').length;\nconst amarillo = rows.filter(r => r.zone === 'AMARILLO').length;\nconst rojo = rows.filter(r => r.zone === 'ROJO').length;\nconst avgHrv = rows.filter(r => r.hrv).reduce((s,r)=>s+r.hrv,0) / (rows.filter(r=>r.hrv).length || 1);\nconst body = [\n  'Revision semanal — Fitness Coach',\n  `VERDE: ${verde} | AMARILLO: ${amarillo} | ROJO: ${rojo}`,\n  `HRV promedio 7d: ${avgHrv.toFixed(0)} ms`,\n  'Objetivo: >=3 dias VERDE, ACWR <1.3, VO2max -> 44+',\n  'Responde con ajustes para la semana.'\n].join('\\n');\nreturn [{ json: { to: $env.WHATSAPP_TO, body } }];"
+      },
+      "id": "weekly-summary",
+      "name": "Weekly Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 480]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.COLLECTOR_URL }}/health"
+      },
+      "id": "garmin-token-check",
+      "name": "Garmin Token Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 680],
+      "notes": "Chain after daily alerts; if /collect returns 401, notify tech alert"
+    }
+  ],
+  "connections": {
+    "Daily Alerts 08:00": {
+      "main": [[{ "node": "Collect for Alerts", "type": "main", "index": 0 }]]
+    },
+    "Collect for Alerts": {
+      "main": [[{ "node": "Build Alert Messages", "type": "main", "index": 0 }]]
+    },
+    "Build Alert Messages": {
+      "main": [[{ "node": "Send Alert WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Sunday 18:00 Review": {
+      "main": [[{ "node": "Last 7 Days Readiness", "type": "main", "index": 0 }]]
+    },
+    "Last 7 Days Readiness": {
+      "main": [[{ "node": "Weekly Summary", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "timezone": "America/Bogota"
+  }
+}

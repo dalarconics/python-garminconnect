@@ -92,6 +92,12 @@ typed = [
 mcp = [
     "mcp>=1.13.0",
 ]
+coaching = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "supabase>=2.10.0",
+    "pydantic>=2.4.0",
+]
 security = [
     "bandit[toml]",
     "pip-audit",

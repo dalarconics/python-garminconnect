@@ -1,0 +1,141 @@
+{
+  "name": "Fitness Coach - WhatsApp Daily",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cron-0700",
+      "name": "Cron 07:00 Bogota",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "daily_snapshots",
+        "returnAll": false,
+        "limit": 1,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "eq",
+              "keyValue": "00000000-0000-0000-0000-000000000001"
+            }
+          ]
+        },
+        "options": {
+          "sort": {
+            "fields": [
+              {
+                "field": "snapshot_date",
+                "direction": "desc"
+              }
+            ]
+          }
+        }
+      },
+      "id": "supabase-latest",
+      "name": "Latest Snapshot",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "CONFIGURE_ME",
+          "name": "Supabase fitness-coach-diego"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const payload = $input.first().json.payload;\nconst zone = payload?.readiness?.zone || '?';\nconst session = payload?.session || {};\nlet text = payload?.whatsapp_message;\nif (!text) {\n  text = `Buenos dias Diego — ${payload.date}\\nReadiness: ${zone}\\nHOY: ${session.title || session.action}`;\n}\nreturn [{ json: { to: $env.WHATSAPP_TO, body: text, zone, guard_flags: session.guard_flags || [] } }];"
+      },
+      "id": "format-message",
+      "name": "Format WhatsApp",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.WHATSAPP_API_URL }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "to", "value": "={{ $json.to }}" },
+            { "name": "from", "value": "={{ $env.WHATSAPP_FROM }}" },
+            { "name": "body", "value": "={{ $json.body }}" }
+          ]
+        }
+      },
+      "id": "send-whatsapp",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300],
+      "notes": "Configure for Twilio, Meta Cloud API, or Evolution API"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "coaching_messages",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "message_date",
+              "condition": "eq",
+              "keyValue": "={{ $('Latest Snapshot').item.json.snapshot_date }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "sent_at",
+              "fieldValue": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "mark-sent",
+      "name": "Mark Sent",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1200, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "CONFIGURE_ME",
+          "name": "Supabase fitness-coach-diego"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Cron 07:00 Bogota": {
+      "main": [[{ "node": "Latest Snapshot", "type": "main", "index": 0 }]]
+    },
+    "Latest Snapshot": {
+      "main": [[{ "node": "Format WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Format WhatsApp": {
+      "main": [[{ "node": "Send WhatsApp", "type": "main", "index": 0 }]]
+    },
+    "Send WhatsApp": {
+      "main": [[{ "node": "Mark Sent", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "timezone": "America/Bogota"
+  }
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Upload and schedule the weekend readiness plan to Garmin Connect.
+"""Upload and schedule a weekend readiness plan to Garmin Connect.
 
-Plan (Sep 18-21, 2026):
+Default schedule (relative to --start-date):
 - Fri: walk Z1-Z2
 - Sat: run Z2
 - Sun: road bike Z2
@@ -13,7 +13,7 @@ from __future__ import annotations
 import argparse
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -120,15 +120,19 @@ def build_workouts() -> dict[str, WalkingWorkout | RunningWorkout | CyclingWorko
     return {"walk": walk, "run": run, "bike": bike}
 
 
-def weekend_schedule() -> list[ScheduledWorkout]:
+def weekend_schedule(start: date) -> list[ScheduledWorkout]:
+    """Build Fri-Sun schedule from the Friday of the week containing start."""
+    # Align to Friday of the week: weekday 4 = Friday
+    days_until_friday = (4 - start.weekday()) % 7
+    friday = start + timedelta(days=days_until_friday)
     return [
-        ScheduledWorkout(date(2026, 9, 18), "walk", "upload_walking_workout"),
-        ScheduledWorkout(date(2026, 9, 19), "run", "upload_running_workout"),
-        ScheduledWorkout(date(2026, 9, 20), "bike", "upload_cycling_workout"),
+        ScheduledWorkout(friday, "walk", "upload_walking_workout"),
+        ScheduledWorkout(friday + timedelta(days=1), "run", "upload_running_workout"),
+        ScheduledWorkout(friday + timedelta(days=2), "bike", "upload_cycling_workout"),
     ]
 
 
-def upload_and_schedule(api: Garmin, dry_run: bool) -> list[tuple[str, str, int]]:
+def upload_and_schedule(api: Garmin, start: date, dry_run: bool) -> list[tuple[str, str, int]]:
     workouts = build_workouts()
     upload_methods = {
         "walk": api.upload_walking_workout,
@@ -137,7 +141,7 @@ def upload_and_schedule(api: Garmin, dry_run: bool) -> list[tuple[str, str, int]
     }
     log: list[tuple[str, str, int]] = []
 
-    for item in weekend_schedule():
+    for item in weekend_schedule(start):
         workout = workouts[item.key]
         day_str = item.day.isoformat()
 
@@ -172,6 +176,11 @@ def push_to_device(api: Garmin, workout_ids: list[int], dry_run: bool) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--start-date",
+        default=date.today().isoformat(),
+        help="Reference date; schedules Fri-Sun of that week (default: today)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Preview without uploading")
     parser.add_argument("--skip-push", action="store_true", help="Do not push to watch")
     return parser.parse_args()
@@ -179,17 +188,19 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    start = date.fromisoformat(args.start_date)
     api = login_client(prompt=False)
-    log = upload_and_schedule(api, dry_run=args.dry_run)
+    log = upload_and_schedule(api, start, dry_run=args.dry_run)
 
     if not args.skip_push:
         push_to_device(api, [wid for _, _, wid in log], dry_run=args.dry_run)
 
+    rest_day = weekend_schedule(start)[-1].day + timedelta(days=1)
     print("\nWeekend plan summary")
     print("--------------------")
     for day_str, name, wid in log:
         print(f"{day_str} | {name} | workoutId={wid}")
-    print("2026-09-21 | REST | (not scheduled)")
+    print(f"{rest_day.isoformat()} | REST | (not scheduled)")
     return 0
 
 
