@@ -1,4 +1,7 @@
 # Custom
+.DS_Store
+.ies/
+.readiness_history/
 vulnerability_reports/
 SECURITY_AUDIT_LOG.md
 your_data/
@@ -122,6 +125,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
 .envrc
 .venv
 env/

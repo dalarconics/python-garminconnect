@@ -1,0 +1,16 @@
+{
+  "servers": {
+    "garmin-connect": {
+      "command": "python",
+      "args": [
+        "-m",
+        "garmin_mcp.server"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "GARMINTOKENS": "~/.garminconnect"
+      }
+    }
+  }
+}

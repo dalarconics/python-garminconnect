@@ -229,6 +229,120 @@ and file permissions. Run the project in a dedicated virtual environment, read
 the method you plan to call, and start with read-only methods. Upload, edit,
 delete, schedule, hydration, weigh-in, and menstrual write methods can change Garmin account data.
 
+## MCP Server (experimental)
+
+This repository now includes a repository-level MCP server for querying Garmin
+data through this library.
+
+- Module: `garmin_mcp.server`
+- Transport: stdio
+- Workspace config: `.mcp/servers.json`
+- Initial scope: read-only tools (auth status, summary, heart rate, sleep,
+  activities) plus local token login/logout helpers
+
+Install with MCP support:
+
+```bash
+pip install -e ".[mcp]"
+```
+
+Run:
+
+```bash
+python -m garmin_mcp.server
+# or
+pdm run mcp-server
+```
+
+Use canonical workspace registration (`.mcp/servers.json`) in MCP clients that
+support workspace-level server discovery.
+
+### MCP end-to-end smoke test
+
+Run a local MCP client against this repo's MCP server over stdio:
+
+```bash
+PYTHONPATH=. python scripts/mcp_e2e_smoke_test.py
+# or
+pdm run mcp-e2e-test
+```
+
+To auto-fallback to credential login when token login fails:
+
+```bash
+export GARMIN_EMAIL="you@example.com"
+read -s GARMIN_PASSWORD && export GARMIN_PASSWORD
+PYTHONPATH=. python scripts/mcp_e2e_smoke_test.py --allow-env-credentials
+unset GARMIN_PASSWORD
+```
+
+Expected outcomes:
+
+- `MCP_E2E_OK`: token login worked and summary query succeeded.
+- `MCP_E2E_NEEDS_TOKENS`: no valid cached token yet (run one credential login first).
+
+### MCP daily snapshot
+
+Fetch summary, heart-rate, sleep, and recent activities in one JSON payload:
+
+```bash
+PYTHONPATH=. python scripts/mcp_daily_snapshot.py --date 2026-07-26 --activity-limit 20
+# or
+pdm run mcp-daily-snapshot -- --date 2026-07-26 --activity-limit 20
+```
+
+If token login fails, allow credential fallback from `.env` values:
+
+```bash
+set -a && source .env && set +a
+PYTHONPATH=. python scripts/mcp_daily_snapshot.py --date 2026-07-26 --allow-env-credentials
+```
+
+Save the payload to a file:
+
+```bash
+PYTHONPATH=. python scripts/mcp_daily_snapshot.py --date 2026-07-26 --output your_data/mcp_snapshot_2026-07-26.json
+```
+
+If token login is not ready, it prints `MCP_DAILY_SNAPSHOT_NEEDS_TOKENS`.
+
+The JSON output now includes:
+
+- `health_score`: daily 0-100 composite score (cardio, sleep, activity, stress)
+- `vs_7day_baseline`: deltas against your recent 7-day averages
+- `vs_bogota_male_adult_reference`: approximate contextual benchmark for adult men in Bogota
+
+### Sleep gap report (CSV)
+
+Detect days with missing sleep records in a date range and export CSV:
+
+```bash
+set -a && source .env && set +a
+PYTHONPATH=. python scripts/sleep_gap_report.py --start 2026-07-01 --end 2026-07-31 --output your_data/sleep_gap_report_july.csv
+```
+
+Plot sleep behavior + missing-day markers:
+
+```bash
+PYTHONPATH=. python scripts/sleep_gap_plot.py --input your_data/sleep_gap_report_july.csv --output your_data/sleep_behavior_july.png
+```
+
+### Live account smoke test (credentials via env vars)
+
+Run a real read-only login + summary query against your Garmin account:
+
+```bash
+export GARMIN_EMAIL="you@example.com"
+read -s GARMIN_PASSWORD && export GARMIN_PASSWORD
+python scripts/live_account_smoke_test.py
+# or
+pdm run live-test
+unset GARMIN_PASSWORD
+```
+
+Security note: prefer token-based login (`login_with_tokens`) in local trusted
+environments. If you use `login_with_credentials`, treat inputs as secrets.
+
 ## 🧪 Testing
 
 The default suite is credential-free and excludes live-account integration tests:

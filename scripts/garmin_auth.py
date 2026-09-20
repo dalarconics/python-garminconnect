@@ -1,0 +1,163 @@
+"""Garmin login helpers for repository scripts.
+
+Credential resolution order:
+1. Environment variables (GARMIN_EMAIL / GARMIN_PASSWORD)
+2. macOS Keychain (service: python-garminconnect)
+3. Repo-local .env.local (gitignored)
+4. Optional interactive prompt
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+from getpass import getpass
+from pathlib import Path
+from typing import Callable
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from garminconnect import Garmin, GarminConnectAuthenticationError
+
+KEYCHAIN_SERVICE = "python-garminconnect"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+ENV_LOCAL_PATH = REPO_ROOT / ".env.local"
+
+
+def _load_env_local() -> dict[str, str]:
+    if not ENV_LOCAL_PATH.is_file():
+        return {}
+
+    values: dict[str, str] = {}
+    for raw_line in ENV_LOCAL_PATH.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip("'\"")
+    return values
+
+
+def _load_keychain() -> tuple[str | None, str | None]:
+    try:
+        password_proc = subprocess.run(
+            ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-w"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        account_proc = subprocess.run(
+            ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None, None
+
+    password = password_proc.stdout.strip()
+    account = None
+    for line in account_proc.stdout.splitlines():
+        match = re.search(r'="([^"]+)"', line)
+        if match and ("acct" in line or '"acct"' in line):
+            account = match.group(1)
+            break
+
+    if account and password:
+        return account, password
+    return None, None
+
+
+def save_credentials(email: str, password: str) -> None:
+    """Persist Garmin credentials in macOS Keychain."""
+    email = email.strip()
+    password = password.strip()
+    if not email or not password:
+        raise ValueError("Email and password are required.")
+
+    try:
+        subprocess.run(
+            [
+                "security",
+                "add-generic-password",
+                "-a",
+                email,
+                "-s",
+                KEYCHAIN_SERVICE,
+                "-w",
+                password,
+                "-U",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "").strip()
+        raise RuntimeError(f"Failed to save credentials to Keychain: {detail}") from exc
+
+
+def credentials_configured() -> bool:
+    """Return True when credentials are available without prompting."""
+    try:
+        get_credentials(prompt=False)
+        return True
+    except GarminConnectAuthenticationError:
+        return False
+
+
+def get_credentials(*, prompt: bool = True) -> tuple[str, str]:
+    email = os.getenv("GARMIN_EMAIL") or os.getenv("EMAIL")
+    password = os.getenv("GARMIN_PASSWORD") or os.getenv("PASSWORD")
+    if email and password:
+        return email.strip(), password
+
+    keychain_email, keychain_password = _load_keychain()
+    if keychain_email and keychain_password:
+        return keychain_email, keychain_password
+
+    env_local = _load_env_local()
+    email = email or env_local.get("GARMIN_EMAIL") or env_local.get("EMAIL")
+    password = password or env_local.get("GARMIN_PASSWORD") or env_local.get("PASSWORD")
+    if email and password:
+        return email.strip(), password.strip()
+
+    if not prompt:
+        raise GarminConnectAuthenticationError(
+            "Garmin credentials not found. Run: "
+            "./.venv/bin/python scripts/setup_garmin_credentials.py"
+        )
+
+    email = input("Garmin email: ").strip()
+    password = getpass("Garmin password (hidden): ")
+    if not email or not password:
+        raise GarminConnectAuthenticationError("Email and password are required.")
+    return email, password
+
+
+def tokenstore_path() -> str:
+    return os.path.expanduser(os.getenv("GARMINTOKENS", "~/.garminconnect"))
+
+
+def login_client(
+    *,
+    prompt: bool = True,
+    prompt_mfa: Callable[[], str] | None = None,
+) -> Garmin:
+    """Return an authenticated Garmin client using tokens or stored credentials."""
+    store = tokenstore_path()
+    mfa = prompt_mfa or (lambda: input("MFA code (if prompted): ").strip())
+
+    client = Garmin()
+    try:
+        client.login(store)
+        return client
+    except Exception:
+        pass
+
+    email, password = get_credentials(prompt=prompt)
+    client = Garmin(email=email, password=password, prompt_mfa=mfa)
+    client.login(store)
+    return client

@@ -9,6 +9,7 @@ dependencies = [
     "curl_cffi>=0.15.0",
     "requests>=2.33.0",
     "ua-generator>=1.0",
+    "PyYAML>=6.0",
 ]
 readme = "README.md"
 license = {text = "MIT"}
@@ -87,6 +88,9 @@ workout = [
 ]
 typed = [
     "pydantic>=2.4.0",
+]
+mcp = [
+    "mcp>=1.13.0",
 ]
 security = [
     "bandit[toml]",
@@ -241,6 +245,12 @@ clean = "python -c \"import shutil, pathlib; [shutil.rmtree(p, ignore_errors=Tru
 
 # Pre-commit hooks
 pre-commit-install = "pre-commit install"
+mcp-server = "python -m garmin_mcp.server"
+live-test = "python scripts/live_account_smoke_test.py"
+mcp-e2e-test = "python scripts/mcp_e2e_smoke_test.py"
+mcp-daily-snapshot = "python scripts/mcp_daily_snapshot.py"
+sleep-gap-report = "python scripts/sleep_gap_report.py"
+sleep-gap-plot = "python scripts/sleep_gap_plot.py"
 pre-commit-run = "pre-commit run --all-files"
 pre-commit-run-staged = "pre-commit run"
 pre-commit-update = "pre-commit autoupdate"
