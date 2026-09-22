@@ -29,6 +29,7 @@ class EventMilestone:
 MILESTONES: tuple[EventMilestone, ...] = (
     EventMilestone("mmb_2027", "Media Maraton Bogota 2027", date(2027, 7, 25)),
     EventMilestone("reto_letras_2027", "Reto Mariquita Letras 2027", date(2027, 9, 13)),
+    EventMilestone("cartagena_703_2027", "Ironman 70.3 Cartagena 2027", date(2027, 11, 29)),
 )
 
 PHASES: tuple[MacrocyclePhase, ...] = (
@@ -39,6 +40,16 @@ PHASES: tuple[MacrocyclePhase, ...] = (
     MacrocyclePhase("R4", "Carrera mmB", date(2027, 7, 25), date(2027, 7, 25), "Taper + carrera", "race", 182, 150),
     MacrocyclePhase("R5", "Transicion ciclismo", date(2027, 8, 1), date(2027, 8, 31), "Fuerza + bici subida", "bike", 141, 120),
     MacrocyclePhase("R6", "Reto Letras", date(2027, 9, 1), date(2027, 9, 13), "Ascenso + taper", "bike", 155, 180),
+    MacrocyclePhase(
+        "R7",
+        "Especifico 70.3",
+        date(2027, 10, 1),
+        date(2027, 11, 28),
+        "Brick + volumen tri",
+        "tri",
+        155,
+        180,
+    ),
 )
 
 

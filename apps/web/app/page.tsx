@@ -1,3 +1,6 @@
+import { PreparationChart } from "@/components/PreparationChart";
+import { RecoveryMilestonesCard } from "@/components/RecoveryMilestonesCard";
+import { buildActualSeries } from "@/lib/preparation";
 import { MVP_USER_ID, supabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -52,8 +55,10 @@ type SnapshotRow = {
   updated_at?: string;
 };
 
+type LoadRow = { load_date: string; acwr: number | null; vo2max: number | null };
+
 async function fetchDashboard() {
-  const [readinessRes, snapshotRes, historyRes] = await Promise.all([
+  const [readinessRes, snapshotRes, historyRes, loadRes, trendRes] = await Promise.all([
     supabase
       .from("readiness_daily")
       .select(
@@ -76,12 +81,43 @@ async function fetchDashboard() {
       .eq("user_id", MVP_USER_ID)
       .order("readiness_date", { ascending: false })
       .limit(14),
+    supabase
+      .from("training_load")
+      .select("load_date, acwr, vo2max")
+      .eq("user_id", MVP_USER_ID)
+      .order("load_date", { ascending: false })
+      .limit(60),
+    supabase
+      .from("readiness_daily")
+      .select("readiness_date, zone, score_ok, hrv, thresholds")
+      .eq("user_id", MVP_USER_ID)
+      .order("readiness_date", { ascending: false })
+      .limit(45),
   ]);
+
+  const loadByDate = new Map<string, LoadRow>();
+  for (const row of (loadRes.data || []) as LoadRow[]) {
+    loadByDate.set(row.load_date, row);
+  }
+
+  const trendRows = ((trendRes.data || []) as ReadinessRow[]).map((r) => {
+    const load = loadByDate.get(r.readiness_date);
+    return {
+      date: r.readiness_date,
+      zone: r.zone,
+      score_ok: r.score_ok,
+      hrv: r.hrv,
+      acwr: load?.acwr ?? null,
+      vo2max: load?.vo2max ?? null,
+      hrv_threshold: r.thresholds?.hrv,
+    };
+  });
 
   return {
     readiness: readinessRes.data as ReadinessRow | null,
     snapshot: snapshotRes.data as SnapshotRow | null,
     history: (historyRes.data || []) as HistoryRow[],
+    preparationTrend: buildActualSeries(trendRows),
     error: readinessRes.error?.message || snapshotRes.error?.message,
   };
 }
@@ -162,10 +198,8 @@ const RULES = [
 ];
 
 export default async function HomePage() {
-  const { readiness, snapshot, history, error } = await fetchDashboard();
+  const { readiness, snapshot, history, preparationTrend, error } = await fetchDashboard();
   const payload = snapshot?.payload || {};
-  const mmb = payload.milestones?.find((m) => m.code === "mmb_2027");
-  const letras = payload.milestones?.find((m) => m.code === "reto_letras_2027");
   const th = readiness?.thresholds || payload.thresholds || {};
 
   const counts = { VERDE: 0, AMARILLO: 0, ROJO: 0 };
@@ -237,11 +271,22 @@ export default async function HomePage() {
             {dateLabel} · actualiza ~06:00 Bogotá
           </p>
         </div>
-        <div className="header-countdown">
-          <span className="muted">mmB {mmb?.days_remaining ?? "?"}d</span>
-          <span className="muted">Letras {letras?.days_remaining ?? "?"}d</span>
-        </div>
       </header>
+
+      <RecoveryMilestonesCard
+        todayIso={dateLabel !== "—" ? dateLabel : new Date().toISOString().slice(0, 10)}
+        acwr={training.acwr}
+        phaseCode={payload.macrocycle?.code}
+        phaseName={payload.macrocycle?.name}
+      />
+
+      <section className="card">
+        <h2 style={{ marginTop: 0 }}>Preparación vs retos</h2>
+        <PreparationChart
+          actual={preparationTrend}
+          todayIso={dateLabel !== "—" ? dateLabel : new Date().toISOString().slice(0, 10)}
+        />
+      </section>
 
       <section className="card card-highlight">
         <h2 style={{ marginTop: 0 }}>Hoy</h2>

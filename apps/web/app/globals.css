@@ -179,3 +179,107 @@ main {
   color: var(--muted);
   font-weight: 500;
 }
+
+.card-recovery {
+  border: 1px solid #334155;
+  background: linear-gradient(135deg, #1e293b 0%, #172554 100%);
+}
+
+.recovery-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recovery-number {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #93c5fd;
+}
+
+.recovery-label {
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.milestones-sub {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.milestone-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.milestone-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #334155;
+  font-size: 0.9rem;
+}
+
+.milestone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.milestone-date {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.milestone-days {
+  font-weight: 600;
+  text-align: right;
+}
+
+.prep-chart-wrap {
+  overflow-x: auto;
+}
+
+.prep-chart {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+}
+
+.chart-caption {
+  font-size: 0.8rem;
+  margin: 0 0 0.75rem;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legend-line {
+  display: inline-block;
+  width: 1.25rem;
+  height: 0;
+  border-top: 2px dashed #64748b;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.legend-actual {
+  border-top: 2.5px solid #f1f5f9;
+  border-style: solid;
+}
