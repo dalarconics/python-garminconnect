@@ -204,6 +204,107 @@ export function toSvgPath(
     .join(" ");
 }
 
+export type ProjectionAtEvent = {
+  event: EventDef;
+  projected: number;
+  target: number;
+  gap: number;
+};
+
+function clampIndex(y: number): number {
+  return Math.max(0, Math.min(100, y));
+}
+
+function linearRegression(points: { day: number; y: number }[]): { slope: number; intercept: number } {
+  const n = points.length;
+  if (n === 0) return { slope: 0, intercept: 50 };
+  if (n === 1) return { slope: 0, intercept: points[0].y };
+
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
+  for (const p of points) {
+    sumX += p.day;
+    sumY += p.y;
+    sumXY += p.day * p.y;
+    sumXX += p.day * p.day;
+  }
+  const denom = n * sumXX - sumX * sumX;
+  if (denom === 0) return { slope: 0, intercept: sumY / n };
+  const slope = (n * sumXY - sumX * sumY) / denom;
+  const intercept = (sumY - slope * sumX) / n;
+  return { slope, intercept };
+}
+
+/** Proyección lineal desde tu ritmo reciente (regresión + tope realista). */
+export function buildProjection(
+  actual: DailyActual[],
+  chartStart: string,
+  chartEnd: string,
+  todayIso: string
+): { forecast: ChartPoint[]; atEvents: ProjectionAtEvent[]; slopePerDay: number } {
+  if (actual.length === 0) {
+    const flat = 45;
+    const atEvents = EVENTS.map((event) => ({
+      event,
+      projected: flat,
+      target: event.targetIndex,
+      gap: event.targetIndex - flat,
+    }));
+    return { forecast: [], atEvents, slopePerDay: 0 };
+  }
+
+  const sorted = [...actual].sort((a, b) => a.date.localeCompare(b.date));
+  const samples = sorted.map((a) => ({
+    day: daysBetween(chartStart, a.date),
+    y: a.index,
+  }));
+
+  let { slope } = linearRegression(samples);
+  const maxSlope = 0.1;
+  const minSlope = -0.06;
+  slope = Math.max(minSlope, Math.min(maxSlope, slope));
+
+  const last = sorted[sorted.length - 1];
+  const lastDay = daysBetween(chartStart, last.date);
+  const lastY = last.index;
+
+  const totalDays = daysBetween(chartStart, chartEnd);
+  const forecast: ChartPoint[] = [];
+  for (let day = lastDay; day <= totalDays; day += Math.max(7, Math.floor((totalDays - lastDay) / 40))) {
+    const date = addDays(chartStart, day);
+    const y = clampIndex(lastY + slope * (day - lastDay));
+    forecast.push({
+      x: timeFraction(date, chartStart, chartEnd),
+      y,
+      date,
+    });
+  }
+  const endDate = chartEnd;
+  if (forecast.length === 0 || forecast[forecast.length - 1].date !== endDate) {
+    const yEnd = clampIndex(lastY + slope * (totalDays - lastDay));
+    forecast.push({
+      x: timeFraction(endDate, chartStart, chartEnd),
+      y: yEnd,
+      date: endDate,
+    });
+  }
+
+  const atEvents: ProjectionAtEvent[] = EVENTS.map((event) => {
+    const day = daysBetween(chartStart, event.eventDate);
+    const projected = Math.round(clampIndex(lastY + slope * (day - lastDay)));
+    return {
+      event,
+      projected,
+      target: event.targetIndex,
+      gap: event.targetIndex - projected,
+    };
+  });
+
+  return { forecast, atEvents, slopePerDay: slope };
+}
+
 export function monthAxisTicks(
   chartStart: string,
   chartEnd: string
