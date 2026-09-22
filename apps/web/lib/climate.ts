@@ -78,6 +78,8 @@ export async function fetchCityClimate(city: ClimateCity, fromDate?: string): Pr
     timezone: "America/Bogota",
     start_date: start,
     end_date: endStr,
+    past_days: "92",
+    forecast_days: "16",
   });
 
   const url = `https://api.open-meteo.com/v1/forecast?${params}`;

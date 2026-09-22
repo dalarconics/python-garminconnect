@@ -11,7 +11,7 @@ Personal coaching stack for **mmB 2027** (25 Jul) and **Reto Mariquita–Letras*
 | Collector API | `services/collector/` |
 | Supabase schema | `supabase/schema.sql`, `supabase/seed.sql` |
 | n8n workflows | `docs/n8n/*.json` |
-| Dashboard (phase 2) | `apps/web/` — `/` Hoy, `/mesociclos` plan + Garmin |
+| Dashboard (phase 2) | `apps/web/` — `/`, `/mesociclos`, `/70-3-cartagena`, `/clima` |
 | Mesocycle + Garmin volume | `garmin_coaching/mesocycle.py`, `activity_load.py`, tabla `weekly_sport_load` |
 | Figma wireframes | `docs/figma/wireframes.md` |
 
