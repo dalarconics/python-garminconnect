@@ -26,6 +26,138 @@ main {
   padding: 1.5rem;
 }
 
+.dash-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #334155;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.dash-nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.dash-nav-link.active {
+  color: var(--text);
+  background: var(--card);
+}
+
+.meso-week-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.meso-sport-row {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.35rem 0;
+}
+
+.meso-sport-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.meso-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.meso-bar-track {
+  height: 6px;
+  background: #0f172a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.meso-bar {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+}
+
+.meso-sport-nums {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.meso-recovery {
+  border: 1px solid #854d0e;
+}
+
+.meso-legend,
+.meso-total {
+  font-size: 0.8rem;
+  margin: 0.35rem 0;
+}
+
+.climate-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.climate-scroll {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.climate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.climate-table th,
+.climate-table td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #334155;
+}
+
+.climate-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.course-leg-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.course-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.course-leg h3 {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.course-leg ul {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .card {
   background: var(--card);
   border-radius: 12px;

@@ -78,4 +78,29 @@ def upsert_daily_payload(payload: dict[str, Any], user_id: str = DEFAULT_USER_ID
         on_conflict="user_id,session_date",
     ).execute()
 
+    for row in payload.get("weekly_sport_load") or []:
+        client.table("weekly_sport_load").upsert(
+            {
+                "user_id": user_id,
+                "week_start": row["week_start"],
+                "block_index": row.get("block_index"),
+                "week_in_block": row.get("week_in_block"),
+                "kind": row.get("kind"),
+                "phase_code": row.get("phase_code"),
+                "planned_run_min": row.get("planned_run_min"),
+                "planned_bike_min": row.get("planned_bike_min"),
+                "planned_swim_min": row.get("planned_swim_min"),
+                "planned_walk_min": row.get("planned_walk_min"),
+                "planned_total_min": row.get("planned_total_min"),
+                "executed_run_min": row.get("executed_run_min"),
+                "executed_bike_min": row.get("executed_bike_min"),
+                "executed_swim_min": row.get("executed_swim_min"),
+                "executed_walk_min": row.get("executed_walk_min"),
+                "executed_other_min": row.get("executed_other_min"),
+                "executed_total_min": row.get("executed_total_min"),
+                "payload": row.get("payload"),
+            },
+            on_conflict="user_id,week_start",
+        ).execute()
+
     return {"status": "ok", "date": ds}

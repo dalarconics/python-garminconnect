@@ -113,6 +113,33 @@ create table if not exists public.session_log (
     unique (user_id, session_date)
 );
 
+create table if not exists public.weekly_sport_load (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references public.users(id) on delete cascade,
+    week_start date not null,
+    block_index int,
+    week_in_block int,
+    kind text,
+    phase_code text,
+    planned_run_min numeric,
+    planned_bike_min numeric,
+    planned_swim_min numeric,
+    planned_walk_min numeric,
+    planned_total_min numeric,
+    executed_run_min numeric,
+    executed_bike_min numeric,
+    executed_swim_min numeric,
+    executed_walk_min numeric,
+    executed_other_min numeric,
+    executed_total_min numeric,
+    payload jsonb,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    unique (user_id, week_start)
+);
+
+create index if not exists idx_weekly_sport_load_week on public.weekly_sport_load (user_id, week_start desc);
+
 create index if not exists idx_daily_snapshots_date on public.daily_snapshots (user_id, snapshot_date desc);
 create index if not exists idx_readiness_daily_date on public.readiness_daily (user_id, readiness_date desc);
 create index if not exists idx_coaching_messages_date on public.coaching_messages (user_id, message_date desc);
@@ -125,6 +152,7 @@ alter table public.coaching_messages enable row level security;
 alter table public.session_log enable row level security;
 alter table public.event_milestones enable row level security;
 alter table public.macrocycle_phases enable row level security;
+alter table public.weekly_sport_load enable row level security;
 
 create policy "service_role_all" on public.daily_snapshots for all using (true) with check (true);
 create policy "service_role_all" on public.readiness_daily for all using (true) with check (true);
@@ -133,3 +161,4 @@ create policy "service_role_all" on public.coaching_messages for all using (true
 create policy "service_role_all" on public.session_log for all using (true) with check (true);
 create policy "service_role_all" on public.event_milestones for all using (true) with check (true);
 create policy "service_role_all" on public.macrocycle_phases for all using (true) with check (true);
+create policy "service_role_all" on public.weekly_sport_load for all using (true) with check (true);

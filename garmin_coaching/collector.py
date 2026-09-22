@@ -14,7 +14,9 @@ from garmin_coaching.readiness import (
     classify,
     derive_thresholds_from_history,
 )
+from garmin_coaching.mesocycle import plan_week
 from garmin_coaching.session_planner import plan_session
+from garmin_coaching.weekly_sync import build_weekly_sport_rows
 
 
 def day_metrics(client: Any, ds: str) -> dict[str, Any]:
@@ -164,8 +166,13 @@ def build_daily_payload(
     session = apply_guards(readiness_raw or {}, training_load, session)
     daily_plan = build_daily_plan(readiness_raw)
 
+    mesocycle_week = plan_week(on_day)
+    weekly_sport_load = build_weekly_sport_rows(client, through=on_day, lookback_days=120)
+
     payload = {
         "date": ds,
+        "mesocycle_week": mesocycle_week,
+        "weekly_sport_load": weekly_sport_load,
         "readiness": readiness_raw,
         "sleep_body_battery": sleep_bb,
         "thresholds": th,
