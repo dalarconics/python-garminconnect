@@ -92,7 +92,7 @@ async function fetchDashboard() {
       .select("readiness_date, zone, score_ok, hrv, thresholds")
       .eq("user_id", MVP_USER_ID)
       .order("readiness_date", { ascending: false })
-      .limit(45),
+      .limit(120),
   ]);
 
   const loadByDate = new Map<string, LoadRow>();
