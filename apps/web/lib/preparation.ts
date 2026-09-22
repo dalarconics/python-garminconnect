@@ -67,16 +67,13 @@ export function chartWindow(todayIso: string): { chartStart: string; chartEnd: s
   return { chartStart, chartEnd };
 }
 
-/** Log-scaled position on chart (0 = chartStart, 1 = chartEnd). */
-export function logTimeFraction(dateIso: string, chartStart: string, chartEnd: string): number {
+/** Posición lineal uniforme (0 = chartStart, 1 = chartEnd). */
+export function timeFraction(dateIso: string, chartStart: string, chartEnd: string): number {
   const t0 = parseDate(chartStart);
   const t1 = parseDate(chartEnd);
   const t = parseDate(dateIso);
-  const spanMs = Math.max(86400000, t1 - t0);
-  const offsetMs = Math.max(0, Math.min(spanMs, t - t0));
-  const logSpan = Math.log1p(spanMs / 86400000);
-  if (logSpan <= 0) return 0;
-  return Math.log1p(offsetMs / 86400000) / logSpan;
+  const span = Math.max(1, t1 - t0);
+  return Math.max(0, Math.min(1, (t - t0) / span));
 }
 
 /** Logarithmic progress: base sólida al inicio, acercamiento al target al final. */
@@ -151,7 +148,7 @@ export function buildIdealLine(
     if (parseDate(date) > parseDate(chartEnd)) break;
     const t = d / totalDays;
     const y = logProgressY(t, startIndex, event.targetIndex);
-    const x = logTimeFraction(date, chartStart, chartEnd);
+    const x = timeFraction(date, chartStart, chartEnd);
     points.push({ x, y, date });
   }
   return points;
@@ -190,7 +187,7 @@ export function actualToChartPoints(
   return actual
     .filter((a) => parseDate(a.date) >= parseDate(chartStart) && parseDate(a.date) <= parseDate(chartEnd))
     .map((a) => ({
-      x: logTimeFraction(a.date, chartStart, chartEnd),
+      x: timeFraction(a.date, chartStart, chartEnd),
       y: a.index,
       date: a.date,
     }));
@@ -198,13 +195,10 @@ export function actualToChartPoints(
 
 export function toSvgPath(
   points: ChartPoint[],
-  width: number,
-  height: number,
-  pad: number
+  scaleX: (x: number) => number,
+  scaleY: (y: number) => number
 ): string {
   if (points.length === 0) return "";
-  const scaleX = (x: number) => pad + x * (width - pad * 2);
-  const scaleY = (y: number) => height - pad - (y / 100) * (height - pad * 2);
   return points
     .map((p, i) => `${i === 0 ? "M" : "L"} ${scaleX(p.x).toFixed(1)} ${scaleY(p.y).toFixed(1)}`)
     .join(" ");
@@ -214,7 +208,8 @@ export function monthAxisTicks(
   chartStart: string,
   chartEnd: string
 ): { label: string; x: number }[] {
-  const ticks: { label: string; x: number }[] = [];
+  const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  const raw: { label: string; x: number }[] = [];
   const start = new Date(parseDate(chartStart));
   start.setDate(1);
   const endMs = parseDate(chartEnd);
@@ -222,13 +217,21 @@ export function monthAxisTicks(
   while (cur.getTime() <= endMs) {
     const iso = cur.toISOString().slice(0, 10);
     if (parseDate(iso) >= parseDate(chartStart)) {
-      const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-      ticks.push({
-        label: `${months[cur.getMonth()]} ${cur.getFullYear() % 100}`,
-        x: logTimeFraction(iso, chartStart, chartEnd),
+      raw.push({
+        label: `${months[cur.getMonth()]} ${String(cur.getFullYear()).slice(-2)}`,
+        x: timeFraction(iso, chartStart, chartEnd),
       });
     }
-    cur.setMonth(cur.getMonth() + 1);
+    cur.setMonth(cur.getMonth() + 2);
+  }
+  const minGap = 0.055;
+  const ticks: { label: string; x: number }[] = [];
+  let lastX = -1;
+  for (const tick of raw) {
+    if (ticks.length === 0 || tick.x - lastX >= minGap) {
+      ticks.push(tick);
+      lastX = tick.x;
+    }
   }
   return ticks;
 }

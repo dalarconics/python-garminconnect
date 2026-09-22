@@ -249,7 +249,8 @@ main {
 
 .prep-chart {
   width: 100%;
-  max-width: 640px;
+  max-width: 100%;
+  min-width: 320px;
   height: auto;
   display: block;
 }
