@@ -1,6 +1,13 @@
 # Fitness Coaching MVP
 
-Personal coaching stack for **mmB 2027** (25 Jul) and **Reto Mariquita–Letras** (~13 Sep 2027).
+Personal coaching stack. Nombres canónicos de retos (usar estos textos en la UI, no parafrasear):
+
+| Código | Etiqueta en pantalla | Fecha |
+|--------|----------------------|-------|
+| `bogota_21k_2026` | vChallenges 21K | 2026-11-29 |
+| `mmb_2027` | mmB 21K | 2027-07-25 |
+| `reto_letras_2027` | Letras | 2027-09-13 |
+| `cartagena_703_2027` | 70.3 Cartagena | 2027-11-29 |
 
 ## Components
 
@@ -11,7 +18,7 @@ Personal coaching stack for **mmB 2027** (25 Jul) and **Reto Mariquita–Letras*
 | Collector API | `services/collector/` |
 | Supabase schema | `supabase/schema.sql`, `supabase/seed.sql` |
 | n8n workflows | `docs/n8n/*.json` |
-| Dashboard (phase 2) | `apps/web/` — `/`, `/mesociclos`, `/70-3-cartagena`, `/clima` |
+| Dashboard (phase 2) | `apps/web/` — `/`, `/mesociclos`, `/70-3-cartagena` |
 | Mesocycle + Garmin volume | `garmin_coaching/mesocycle.py`, `activity_load.py`, tabla `weekly_sport_load` |
 | Figma wireframes | `docs/figma/wireframes.md` |
 

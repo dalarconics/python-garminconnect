@@ -16,8 +16,8 @@ type Props = {
 };
 
 const W = 960;
-const H = 260;
-const PAD = { top: 44, right: 12, bottom: 36, left: 36 };
+const H = 272;
+const PAD = { top: 56, right: 12, bottom: 36, left: 36 };
 const PROJECTION_COLOR = "#c084fc";
 
 export function PreparationChart({ actual, todayIso }: Props) {
@@ -46,7 +46,7 @@ export function PreparationChart({ actual, todayIso }: Props) {
 
   const todayX = scaleX(timeFraction(todayIso, chartStart, chartEnd));
   const monthTicks = monthAxisTicks(chartStart, chartEnd);
-  const eventLabelY = [PAD.top - 8, PAD.top - 20, PAD.top - 32];
+  const eventLabelY = [PAD.top - 8, PAD.top - 20, PAD.top - 32, PAD.top - 44];
 
   const slopeLabel =
     slopePerDay >= 0
@@ -146,6 +146,7 @@ export function PreparationChart({ actual, todayIso }: Props) {
         })}
         {EVENTS.map((ev, idx) => {
           const dx = scaleX(timeFraction(ev.eventDate, chartStart, chartEnd));
+          const anchor = dx > W - 80 ? "end" : dx < PAD.left + 48 ? "start" : "middle";
           return (
             <g key={ev.code}>
               <line
@@ -158,12 +159,12 @@ export function PreparationChart({ actual, todayIso }: Props) {
                 opacity={0.55}
               />
               <text
-                x={dx}
+                x={anchor === "end" ? Math.min(dx, W - 6) : dx}
                 y={eventLabelY[idx] ?? PAD.top - 8}
                 fill={ev.color}
                 fontSize="10"
                 fontWeight="600"
-                textAnchor="middle"
+                textAnchor={anchor}
               >
                 {ev.shortLabel}
               </text>
@@ -210,7 +211,15 @@ export function PreparationChart({ actual, todayIso }: Props) {
           <tbody>
             {atEvents.map(({ event, projected, target, gap }) => (
               <tr key={event.code}>
-                <td>{event.shortLabel}</td>
+                <td>
+                  {event.href ? (
+                    <a href={event.href} target="_blank" rel="noreferrer">
+                      {event.shortLabel}
+                    </a>
+                  ) : (
+                    event.shortLabel
+                  )}
+                </td>
                 <td>{event.eventDate}</td>
                 <td className="proj-val">{projected}</td>
                 <td>{target}</td>

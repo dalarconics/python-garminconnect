@@ -48,7 +48,15 @@ export function RecoveryMilestonesCard({ todayIso, acwr, phaseCode, phaseName }:
         {EVENTS.map((ev) => (
           <li key={ev.code}>
             <span className="milestone-dot" style={{ background: ev.color }} />
-            <span className="milestone-name">{ev.shortLabel}</span>
+            <span className="milestone-name">
+              {ev.href ? (
+                <a href={ev.href} target="_blank" rel="noreferrer">
+                  {ev.shortLabel}
+                </a>
+              ) : (
+                ev.shortLabel
+              )}
+            </span>
             <span className="milestone-date">{ev.eventDate}</span>
             <span className="milestone-days">{daysToEvent(ev.eventDate, todayIso)}d</span>
           </li>

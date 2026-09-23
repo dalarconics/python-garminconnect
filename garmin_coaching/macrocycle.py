@@ -27,6 +27,7 @@ class EventMilestone:
 
 
 MILESTONES: tuple[EventMilestone, ...] = (
+    EventMilestone("bogota_21k_2026", "vChallenges 21K", date(2026, 11, 29)),
     EventMilestone("mmb_2027", "Media Maraton Bogota 2027", date(2027, 7, 25)),
     EventMilestone("reto_letras_2027", "Reto Mariquita Letras 2027", date(2027, 9, 13)),
     EventMilestone("cartagena_703_2027", "Ironman 70.3 Cartagena 2027", date(2027, 11, 29)),

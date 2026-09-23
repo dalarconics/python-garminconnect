@@ -28,6 +28,8 @@ main {
 
 .dash-nav {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid #334155;
@@ -46,6 +48,33 @@ main {
 .dash-nav-link.active {
   color: var(--text);
   background: var(--card);
+}
+
+.dash-refresh {
+  margin-left: auto;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.dash-refresh:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.dash-refresh-status {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.dash-refresh-status.error {
+  color: #fca5a5;
 }
 
 .meso-week-head {
@@ -102,35 +131,6 @@ main {
 .meso-total {
   font-size: 0.8rem;
   margin: 0.35rem 0;
-}
-
-.climate-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.climate-scroll {
-  overflow-x: auto;
-  margin-top: 0.5rem;
-}
-
-.climate-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.85rem;
-}
-
-.climate-table th,
-.climate-table td {
-  padding: 0.35rem 0.5rem;
-  text-align: left;
-  border-bottom: 1px solid #334155;
-}
-
-.climate-table th {
-  color: var(--muted);
-  font-weight: 600;
 }
 
 .course-leg-head {
@@ -357,6 +357,11 @@ main {
   padding: 0.4rem 0;
   border-bottom: 1px solid #334155;
   font-size: 0.9rem;
+}
+
+.milestone-name a,
+.projection-table a {
+  color: inherit;
 }
 
 .milestone-dot {

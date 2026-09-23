@@ -4,6 +4,7 @@ delete from public.macrocycle_phases where user_id = '00000000-0000-0000-0000-00
 delete from public.event_milestones where user_id = '00000000-0000-0000-0000-000000000001';
 
 insert into public.event_milestones (user_id, code, name, event_date, notes) values
+    ('00000000-0000-0000-0000-000000000001', 'bogota_21k_2026', 'vChallenges 21K', '2026-11-29', 'https://www.vchallenges.co/2026/challenge/details/vchallenges21k'),
     ('00000000-0000-0000-0000-000000000001', 'mmb_2027', 'Media Maraton Bogota 2027', '2027-07-25', 'https://www.mediamaratonbogota.com/faq'),
     ('00000000-0000-0000-0000-000000000001', 'reto_letras_2027', 'Reto Mariquita Letras 2027', '2027-09-13', 'Fecha estimada; confirmar calendario oficial'),
     ('00000000-0000-0000-0000-000000000001', 'cartagena_703_2027', 'Ironman 70.3 Cartagena 2027', '2027-11-29', 'Half Ironman Cartagena');

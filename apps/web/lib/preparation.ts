@@ -6,6 +6,7 @@ export type EventDef = {
   eventDate: string;
   targetIndex: number;
   color: string;
+  href?: string;
 };
 
 export const PLAN_START = "2026-09-20";
@@ -13,6 +14,14 @@ export const RECOVERY_LOCAL_END = "2026-10-05";
 export const CHART_HISTORY_DAYS = 90;
 
 export const EVENTS: EventDef[] = [
+  {
+    code: "bogota_21k_2026",
+    shortLabel: "vChallenges 21K",
+    eventDate: "2026-11-29",
+    targetIndex: 80,
+    color: "#f59e0b",
+    href: "https://www.vchallenges.co/2026/challenge/details/vchallenges21k",
+  },
   {
     code: "mmb_2027",
     shortLabel: "mmB 21K",
