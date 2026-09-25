@@ -1,5 +1,6 @@
 import { PreparationChart } from "@/components/PreparationChart";
 import { RecoveryMilestonesCard } from "@/components/RecoveryMilestonesCard";
+import { formatLastUpdatedLabel, latestTimestamp } from "@/lib/lastUpdated";
 import { buildActualSeries } from "@/lib/preparation";
 import { MVP_USER_ID, supabase } from "@/lib/supabase";
 
@@ -8,6 +9,7 @@ export const revalidate = 0;
 
 type ReadinessRow = {
   readiness_date: string;
+  updated_at?: string;
   zone: string;
   score_ok: number | null;
   hrv: number | null;
@@ -67,7 +69,7 @@ async function fetchDashboard() {
     supabase
       .from("readiness_daily")
       .select(
-        "readiness_date, zone, score_ok, hrv, bb_change, sleep_h, sleep_score, stress, recommendation, thresholds"
+        "readiness_date, updated_at, zone, score_ok, hrv, bb_change, sleep_h, sleep_score, stress, recommendation, thresholds"
       )
       .eq("user_id", MVP_USER_ID)
       .order("readiness_date", { ascending: false })
@@ -240,6 +242,9 @@ export default async function HomePage() {
   const session = payload.session || {};
   const training = payload.training_load || {};
   const dateLabel = readiness?.readiness_date || snapshot?.snapshot_date || "—";
+  const lastUpdatedLabel = formatLastUpdatedLabel(
+    latestTimestamp(snapshot?.updated_at, readiness?.updated_at)
+  );
   const ruleIdx = dateLabel !== "—" ? new Date(dateLabel).getDay() % RULES.length : 0;
 
   const metrics = [
@@ -285,7 +290,7 @@ export default async function HomePage() {
         <div>
           <h1 style={{ margin: 0 }}>Fitness Coach</h1>
           <p className="muted" style={{ margin: "0.25rem 0 0" }}>
-            {dateLabel} · actualiza ~06:00 Bogotá
+            {lastUpdatedLabel}
           </p>
         </div>
       </header>
