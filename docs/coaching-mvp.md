@@ -4,7 +4,7 @@ Personal coaching stack. Nombres canónicos de retos (usar estos textos en la UI
 
 | Código | Etiqueta en pantalla | Fecha |
 |--------|----------------------|-------|
-| `bogota_21k_2026` | vChallenges 21K | 2026-11-29 |
+| `bogota_21k_2026` | vChallenges 21K | 2026-12-26 |
 | `mmb_2027` | mmB 21K | 2027-07-25 |
 | `reto_letras_2027` | Letras | 2027-09-13 |
 | `cartagena_703_2027` | 70.3 Cartagena | 2027-11-29 |

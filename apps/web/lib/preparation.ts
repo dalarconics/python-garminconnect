@@ -1,4 +1,4 @@
-/** Preparation index (0–100) and ideal trajectories per event. */
+/** Preparation index (0–100): actual, phase-aware ideals, and constrained projection. */
 
 export type EventDef = {
   code: string;
@@ -9,6 +9,12 @@ export type EventDef = {
   href?: string;
 };
 
+/** Edad para VO₂ esperado (Garmin no expone edad en el dashboard MVP). */
+export const ATHLETE_AGE =
+  typeof process !== "undefined" && process.env.NEXT_PUBLIC_ATHLETE_AGE
+    ? Number(process.env.NEXT_PUBLIC_ATHLETE_AGE)
+    : 38;
+
 export const PLAN_START = "2026-09-20";
 export const RECOVERY_LOCAL_END = "2026-10-05";
 export const CHART_HISTORY_DAYS = 90;
@@ -17,8 +23,8 @@ export const EVENTS: EventDef[] = [
   {
     code: "bogota_21k_2026",
     shortLabel: "vChallenges 21K",
-    eventDate: "2026-11-29",
-    targetIndex: 80,
+    eventDate: "2026-12-26",
+    targetIndex: 78,
     color: "#f59e0b",
     href: "https://www.vchallenges.co/2026/challenge/details/vchallenges21k",
   },
@@ -26,21 +32,21 @@ export const EVENTS: EventDef[] = [
     code: "mmb_2027",
     shortLabel: "mmB 21K",
     eventDate: "2027-07-25",
-    targetIndex: 88,
+    targetIndex: 86,
     color: "#22c55e",
   },
   {
     code: "reto_letras_2027",
     shortLabel: "Letras",
     eventDate: "2027-09-13",
-    targetIndex: 85,
+    targetIndex: 84,
     color: "#38bdf8",
   },
   {
     code: "cartagena_703_2027",
     shortLabel: "70.3 Cartagena",
     eventDate: "2027-11-29",
-    targetIndex: 92,
+    targetIndex: 90,
     color: "#f97316",
   },
 ];
@@ -50,8 +56,25 @@ export type DailyActual = {
   index: number;
 };
 
-/** x is 0–1 on log-scaled time axis */
 export type ChartPoint = { x: number; y: number; date: string };
+
+export type PreparationInput = {
+  zone?: string | null;
+  scoreOk?: number | null;
+  sleepH?: number | null;
+  sleepScore?: number | null;
+  hrv?: number | null;
+  stress?: number | null;
+  bbChange?: number | null;
+  acwr?: number | null;
+  vo2max?: number | null;
+  statusPhrase?: string | null;
+  hrvThreshold?: number;
+  sleepHThreshold?: number;
+  sleepScoreThreshold?: number;
+  bbChangeThreshold?: number;
+  stressMaxThreshold?: number;
+};
 
 function parseDate(iso: string): number {
   return new Date(iso + "T12:00:00").getTime();
@@ -76,7 +99,6 @@ export function chartWindow(todayIso: string): { chartStart: string; chartEnd: s
   return { chartStart, chartEnd };
 }
 
-/** Posición lineal uniforme (0 = chartStart, 1 = chartEnd). */
 export function timeFraction(dateIso: string, chartStart: string, chartEnd: string): number {
   const t0 = parseDate(chartStart);
   const t1 = parseDate(chartEnd);
@@ -85,7 +107,6 @@ export function timeFraction(dateIso: string, chartStart: string, chartEnd: stri
   return Math.max(0, Math.min(1, (t - t0) / span));
 }
 
-/** Logarithmic progress: base sólida al inicio, acercamiento al target al final. */
 export function logProgressY(t: number, startY: number, endY: number, steepness = 14): number {
   const clamped = Math.max(0, Math.min(1, t));
   const curve = Math.log(1 + steepness * clamped) / Math.log(1 + steepness);
@@ -105,35 +126,169 @@ export function daysUntilAcwrTarget(
   return Math.ceil((acwr - target) / 0.15);
 }
 
-export function preparationIndex(input: {
-  zone?: string | null;
-  scoreOk?: number | null;
-  hrv?: number | null;
-  acwr?: number | null;
-  vo2max?: number | null;
-  hrvThreshold?: number;
-}): number {
-  const scoreOk = input.scoreOk ?? 0;
-  const readinessPart = (scoreOk / 5) * 40;
+/** VO₂ “bueno” de referencia por edad (hombre, running Garmin). */
+export function expectedVo2ForAge(age: number): number {
+  return Math.max(36, 48 - (age - 25) * 0.35);
+}
 
-  const vo2 = input.vo2max ?? 43;
-  const vo2Part = Math.min(35, (vo2 / 48) * 35);
+/** Techo de índice alcanzable sin meses de estímulo (capacidad + carga actuales). */
+export function ceilingIndex(vo2max: number | null | undefined, age: number): number {
+  const vo2 = vo2max ?? expectedVo2ForAge(age);
+  const expected = expectedVo2ForAge(age);
+  const delta = vo2 - expected;
+  return Math.round(Math.max(42, Math.min(88, 52 + delta * 2.2)));
+}
 
-  let acwrPart = 25;
-  const acwr = input.acwr;
+function pillarReadiness(zone: string | null | undefined, scoreOk: number): number {
+  const base =
+    zone === "VERDE" ? 16 : zone === "AMARILLO" ? 11 : zone === "ROJO" ? 4 : 8;
+  const fine = Math.max(0, Math.min(4, scoreOk - 2));
+  return base + fine;
+}
+
+function pillarLoad(acwr: number | null | undefined, status: string | null | undefined): number {
+  let pts = 10;
   if (acwr != null) {
-    if (acwr <= 1.0) acwrPart = 25;
-    else if (acwr <= 1.3) acwrPart = 18;
-    else if (acwr <= 1.5) acwrPart = 10;
-    else acwrPart = 4;
+    if (acwr <= 0.85) pts = 18;
+    else if (acwr <= 1.0) pts = 16;
+    else if (acwr <= 1.2) pts = 11;
+    else if (acwr <= 1.4) pts = 6;
+    else if (acwr <= 1.7) pts = 3;
+    else pts = 0;
+  }
+  const st = (status || "").toUpperCase();
+  if (st.includes("OVERREACHING") || st.includes("UNPRODUCTIVE")) pts = Math.min(pts, 4);
+  if (st.includes("DETRAINING")) pts = Math.min(pts, 8);
+  if (st.includes("PRODUCTIVE") && acwr != null && acwr <= 1.15) pts = Math.min(20, pts + 2);
+  return pts;
+}
+
+function pillarAerobic(vo2max: number | null | undefined, age: number): number {
+  const vo2 = vo2max ?? expectedVo2ForAge(age);
+  const expected = expectedVo2ForAge(age);
+  const ratio = (vo2 - (expected - 8)) / 12;
+  return Math.max(0, Math.min(20, Math.round(ratio * 20)));
+}
+
+function pillarRecovery(input: PreparationInput): number {
+  let pts = 0;
+  let parts = 0;
+  if (input.sleepH != null && input.sleepHThreshold != null) {
+    parts++;
+    pts += input.sleepH >= input.sleepHThreshold ? 5 : input.sleepH >= input.sleepHThreshold - 0.5 ? 3 : 1;
+  }
+  if (input.sleepScore != null && input.sleepScoreThreshold != null) {
+    parts++;
+    pts += input.sleepScore >= input.sleepScoreThreshold ? 5 : 2;
+  }
+  if (input.hrv != null && input.hrvThreshold != null) {
+    parts++;
+    pts += input.hrv >= input.hrvThreshold ? 5 : input.hrv >= input.hrvThreshold - 5 ? 3 : 1;
+  }
+  if (input.bbChange != null && input.bbChangeThreshold != null) {
+    parts++;
+    pts += input.bbChange >= input.bbChangeThreshold ? 5 : input.bbChange >= input.bbChangeThreshold - 8 ? 3 : 1;
+  }
+  if (input.stress != null && input.stressMaxThreshold != null) {
+    parts++;
+    pts += input.stress <= input.stressMaxThreshold ? 5 : 2;
+  }
+  if (parts === 0) return 10;
+  return Math.round((pts / parts) * (20 / 5));
+}
+
+/**
+ * Índice 0–100: readiness, carga, aeróbico (edad), recuperación.
+ * Diseñado para que R0 + AMARILLO + ACWR>1 no parezca “listo para 21K”.
+ */
+export function preparationIndex(input: PreparationInput): number {
+  const scoreOk = input.scoreOk ?? 0;
+  const age = ATHLETE_AGE;
+
+  let total =
+    pillarReadiness(input.zone, scoreOk) +
+    pillarLoad(input.acwr, input.statusPhrase) +
+    pillarAerobic(input.vo2max, age) +
+    pillarRecovery(input);
+
+  const st = (input.statusPhrase || "").toUpperCase();
+  if (st.includes("OVERREACHING")) total = Math.min(total, 52);
+  if (input.zone === "ROJO") total = Math.min(total, 45);
+  if (input.acwr != null && input.acwr > 1.5) total = Math.min(total, 48);
+
+  const cap = ceilingIndex(input.vo2max, age);
+  if (input.acwr != null && input.acwr > 1.0) {
+    total = Math.min(total, cap - 6);
   }
 
-  let hrvBonus = 0;
-  if (input.hrv != null && input.hrvThreshold != null && input.hrv >= input.hrvThreshold) {
-    hrvBonus = 5;
-  }
+  return Math.round(Math.max(0, Math.min(100, total)));
+}
 
-  return Math.round(Math.min(100, readinessPart + vo2Part + acwrPart + hrvBonus));
+type IdealAnchor = { date: string; index: number };
+
+function idealAnchors(event: EventDef): IdealAnchor[] {
+  switch (event.code) {
+    case "bogota_21k_2026":
+      return [
+        { date: PLAN_START, index: 32 },
+        { date: RECOVERY_LOCAL_END, index: 44 },
+        { date: "2026-11-01", index: 58 },
+        { date: "2026-12-05", index: 70 },
+        { date: "2026-12-19", index: 76 },
+        { date: event.eventDate, index: event.targetIndex },
+      ];
+    case "mmb_2027":
+      return [
+        { date: PLAN_START, index: 30 },
+        { date: RECOVERY_LOCAL_END, index: 42 },
+        { date: "2027-01-15", index: 52 },
+        { date: "2027-04-01", index: 64 },
+        { date: "2027-06-01", index: 76 },
+        { date: "2027-07-18", index: 84 },
+        { date: event.eventDate, index: event.targetIndex },
+      ];
+    case "reto_letras_2027":
+      return [
+        { date: PLAN_START, index: 28 },
+        { date: "2027-06-01", index: 55 },
+        { date: "2027-08-15", index: 68 },
+        { date: "2027-09-06", index: 80 },
+        { date: event.eventDate, index: event.targetIndex },
+      ];
+    case "cartagena_703_2027":
+      return [
+        { date: PLAN_START, index: 26 },
+        { date: "2027-04-01", index: 48 },
+        { date: "2027-08-01", index: 62 },
+        { date: "2027-10-15", index: 78 },
+        { date: "2027-11-15", index: 86 },
+        { date: event.eventDate, index: event.targetIndex },
+      ];
+    default:
+      return [
+        { date: PLAN_START, index: 35 },
+        { date: event.eventDate, index: event.targetIndex },
+      ];
+  }
+}
+
+function interpolateIdealIndex(anchors: IdealAnchor[], dateIso: string): number {
+  const t = parseDate(dateIso);
+  if (t <= parseDate(anchors[0].date)) return anchors[0].index;
+  const last = anchors[anchors.length - 1];
+  if (t >= parseDate(last.date)) return last.index;
+
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const a = anchors[i];
+    const b = anchors[i + 1];
+    const t0 = parseDate(a.date);
+    const t1 = parseDate(b.date);
+    if (t >= t0 && t <= t1) {
+      const frac = (t - t0) / Math.max(1, t1 - t0);
+      return logProgressY(frac, a.index, b.index, 10);
+    }
+  }
+  return last.index;
 }
 
 export function buildIdealLine(
@@ -141,25 +296,18 @@ export function buildIdealLine(
   chartStart: string,
   chartEnd: string
 ): ChartPoint[] {
-  const curveOrigin = PLAN_START;
-  const end = event.eventDate;
-  if (parseDate(end) < parseDate(chartStart)) return [];
-
-  const startIndex = 38;
-  const totalDays = daysBetween(curveOrigin, end);
-  if (totalDays <= 0) return [];
-
+  const anchors = idealAnchors(event);
   const points: ChartPoint[] = [];
-  const samples = 64;
-  for (let i = 0; i <= samples; i++) {
-    const d = Math.round((i / samples) * totalDays);
-    const date = addDays(curveOrigin, d);
+  const totalDays = daysBetween(chartStart, chartEnd);
+  const step = Math.max(7, Math.floor(totalDays / 48));
+  for (let d = 0; d <= totalDays; d += step) {
+    const date = addDays(chartStart, d);
     if (parseDate(date) > parseDate(chartEnd)) break;
-    const t = d / totalDays;
-    const y = logProgressY(t, startIndex, event.targetIndex);
-    const x = timeFraction(date, chartStart, chartEnd);
-    points.push({ x, y, date });
+    const y = interpolateIdealIndex(anchors, date);
+    points.push({ x: timeFraction(date, chartStart, chartEnd), y, date });
   }
+  const endY = interpolateIdealIndex(anchors, chartEnd);
+  points.push({ x: 1, y: endY, date: chartEnd });
   return points;
 }
 
@@ -168,10 +316,19 @@ export function buildActualSeries(
     date: string;
     zone?: string | null;
     score_ok?: number | null;
+    sleep_h?: number | null;
+    sleep_score?: number | null;
     hrv?: number | null;
+    stress?: number | null;
+    bb_change?: number | null;
     acwr?: number | null;
     vo2max?: number | null;
+    status_phrase?: string | null;
     hrv_threshold?: number;
+    sleep_h_threshold?: number;
+    sleep_score_threshold?: number;
+    bb_change_threshold?: number;
+    stress_max_threshold?: number;
   }[]
 ): DailyActual[] {
   const sorted = [...rows].sort((a, b) => a.date.localeCompare(b.date));
@@ -180,10 +337,19 @@ export function buildActualSeries(
     index: preparationIndex({
       zone: r.zone,
       scoreOk: r.score_ok,
+      sleepH: r.sleep_h,
+      sleepScore: r.sleep_score,
       hrv: r.hrv,
+      stress: r.stress,
+      bbChange: r.bb_change,
       acwr: r.acwr,
       vo2max: r.vo2max,
+      statusPhrase: r.status_phrase,
       hrvThreshold: r.hrv_threshold,
+      sleepHThreshold: r.sleep_h_threshold,
+      sleepScoreThreshold: r.sleep_score_threshold,
+      bbChangeThreshold: r.bb_change_threshold,
+      stressMaxThreshold: r.stress_max_threshold,
     }),
   }));
 }
@@ -218,6 +384,7 @@ export type ProjectionAtEvent = {
   projected: number;
   target: number;
   gap: number;
+  idealAtEvent: number;
 };
 
 function clampIndex(y: number): number {
@@ -246,44 +413,80 @@ function linearRegression(points: { day: number; y: number }[]): { slope: number
   return { slope, intercept };
 }
 
-/** Proyección lineal desde tu ritmo reciente (regresión + tope realista). */
+function indexAtDateFromRhythm(
+  lastDate: string,
+  lastIndex: number,
+  targetDate: string,
+  slopePerDay: number,
+  vo2max: number | null | undefined
+): number {
+  const days = daysBetween(lastDate, targetDate);
+  if (days <= 0) return lastIndex;
+
+  const ceiling = ceilingIndex(vo2max, ATHLETE_AGE);
+  let y = lastIndex;
+  for (let d = 1; d <= days; d++) {
+    const date = addDays(lastDate, d);
+    let dailySlope = slopePerDay;
+
+    if (date <= RECOVERY_LOCAL_END) {
+      dailySlope = Math.min(dailySlope, 0.06);
+    } else if (date <= addDays(RECOVERY_LOCAL_END, 21)) {
+      dailySlope = Math.min(Math.max(dailySlope, 0.08), 0.22);
+    } else {
+      dailySlope = Math.min(dailySlope, 0.14);
+    }
+
+    if (y >= ceiling - 2) dailySlope = Math.min(dailySlope, 0.03);
+
+    y = clampIndex(y + dailySlope);
+  }
+  return Math.round(y);
+}
+
+/** Proyección púrpura: ritmo reciente + techo por VO₂/edad + fase R0. */
 export function buildProjection(
   actual: DailyActual[],
   chartStart: string,
   chartEnd: string,
-  todayIso: string
+  todayIso: string,
+  vo2max?: number | null
 ): { forecast: ChartPoint[]; atEvents: ProjectionAtEvent[]; slopePerDay: number } {
   if (actual.length === 0) {
-    const flat = 45;
-    const atEvents = EVENTS.map((event) => ({
-      event,
-      projected: flat,
-      target: event.targetIndex,
-      gap: event.targetIndex - flat,
-    }));
+    const flat = 40;
+    const atEvents: ProjectionAtEvent[] = EVENTS.map((event) => {
+      const idealAtEvent = Math.round(interpolateIdealIndex(idealAnchors(event), event.eventDate));
+      return {
+        event,
+        projected: flat,
+        target: idealAtEvent,
+        gap: idealAtEvent - flat,
+        idealAtEvent,
+      };
+    });
     return { forecast: [], atEvents, slopePerDay: 0 };
   }
 
   const sorted = [...actual].sort((a, b) => a.date.localeCompare(b.date));
-  const samples = sorted.map((a) => ({
+  const recent = sorted.slice(-21);
+  const samples = recent.map((a) => ({
     day: daysBetween(chartStart, a.date),
     y: a.index,
   }));
 
   let { slope } = linearRegression(samples);
-  const maxSlope = 0.1;
-  const minSlope = -0.06;
-  slope = Math.max(minSlope, Math.min(maxSlope, slope));
+  slope = Math.max(-0.04, Math.min(0.12, slope));
 
   const last = sorted[sorted.length - 1];
   const lastDay = daysBetween(chartStart, last.date);
   const lastY = last.index;
-
   const totalDays = daysBetween(chartStart, chartEnd);
+
   const forecast: ChartPoint[] = [];
-  for (let day = lastDay; day <= totalDays; day += Math.max(7, Math.floor((totalDays - lastDay) / 40))) {
+  const step = Math.max(7, Math.floor((totalDays - lastDay) / 36));
+  for (let day = lastDay; day <= totalDays; day += step) {
     const date = addDays(chartStart, day);
-    const y = clampIndex(lastY + slope * (day - lastDay));
+    const y = indexAtDateFromRhythm(last.date, lastY, date, slope, vo2max ?? null);
     forecast.push({
       x: timeFraction(date, chartStart, chartEnd),
       y,
@@ -292,22 +495,22 @@ export function buildProjection(
   }
   const endDate = chartEnd;
   if (forecast.length === 0 || forecast[forecast.length - 1].date !== endDate) {
-    const yEnd = clampIndex(lastY + slope * (totalDays - lastDay));
     forecast.push({
       x: timeFraction(endDate, chartStart, chartEnd),
-      y: yEnd,
+      y: indexAtDateFromRhythm(last.date, lastY, endDate, slope, vo2max ?? null),
       date: endDate,
     });
   }
 
   const atEvents: ProjectionAtEvent[] = EVENTS.map((event) => {
-    const day = daysBetween(chartStart, event.eventDate);
-    const projected = Math.round(clampIndex(lastY + slope * (day - lastDay)));
+    const projected = indexAtDateFromRhythm(last.date, lastY, event.eventDate, slope, vo2max ?? null);
+    const idealAtEvent = Math.round(interpolateIdealIndex(idealAnchors(event), event.eventDate));
     return {
       event,
       projected,
-      target: event.targetIndex,
-      gap: event.targetIndex - projected,
+      target: idealAtEvent,
+      gap: idealAtEvent - projected,
+      idealAtEvent,
     };
   });
 
@@ -344,4 +547,25 @@ export function monthAxisTicks(
     }
   }
   return ticks;
+}
+
+/** Sanity check: índice típico Diego AMARILLO + ACWR 1.1 (para tests manuales). */
+export function debugSampleIndex(): number {
+  return preparationIndex({
+    zone: "AMARILLO",
+    scoreOk: 3,
+    sleepH: 7.2,
+    sleepScore: 89,
+    hrv: 52,
+    stress: 11,
+    bbChange: 59,
+    acwr: 1.1,
+    vo2max: 43.2,
+    statusPhrase: "PRODUCTIVE",
+    hrvThreshold: 47,
+    sleepHThreshold: 7.72,
+    sleepScoreThreshold: 82,
+    bbChangeThreshold: 61,
+    stressMaxThreshold: 25,
+  });
 }

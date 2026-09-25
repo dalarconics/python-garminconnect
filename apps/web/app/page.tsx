@@ -55,7 +55,12 @@ type SnapshotRow = {
   updated_at?: string;
 };
 
-type LoadRow = { load_date: string; acwr: number | null; vo2max: number | null };
+type LoadRow = {
+  load_date: string;
+  acwr: number | null;
+  vo2max: number | null;
+  status_phrase: string | null;
+};
 
 async function fetchDashboard() {
   const [readinessRes, snapshotRes, historyRes, loadRes, trendRes] = await Promise.all([
@@ -83,13 +88,15 @@ async function fetchDashboard() {
       .limit(14),
     supabase
       .from("training_load")
-      .select("load_date, acwr, vo2max")
+      .select("load_date, acwr, vo2max, status_phrase")
       .eq("user_id", MVP_USER_ID)
       .order("load_date", { ascending: false })
       .limit(60),
     supabase
       .from("readiness_daily")
-      .select("readiness_date, zone, score_ok, hrv, thresholds")
+      .select(
+        "readiness_date, zone, score_ok, hrv, bb_change, sleep_h, sleep_score, stress, thresholds"
+      )
       .eq("user_id", MVP_USER_ID)
       .order("readiness_date", { ascending: false })
       .limit(120),
@@ -102,14 +109,24 @@ async function fetchDashboard() {
 
   const trendRows = ((trendRes.data || []) as ReadinessRow[]).map((r) => {
     const load = loadByDate.get(r.readiness_date);
+    const th = r.thresholds || {};
     return {
       date: r.readiness_date,
       zone: r.zone,
       score_ok: r.score_ok,
       hrv: r.hrv,
+      sleep_h: r.sleep_h,
+      sleep_score: r.sleep_score,
+      stress: r.stress,
+      bb_change: r.bb_change,
       acwr: load?.acwr ?? null,
       vo2max: load?.vo2max ?? null,
-      hrv_threshold: r.thresholds?.hrv,
+      status_phrase: load?.status_phrase ?? null,
+      hrv_threshold: th.hrv,
+      sleep_h_threshold: th.sleep_h,
+      sleep_score_threshold: th.sleep_score,
+      bb_change_threshold: th.bb_change,
+      stress_max_threshold: th.stress_max,
     };
   });
 
@@ -285,6 +302,7 @@ export default async function HomePage() {
         <PreparationChart
           actual={preparationTrend}
           todayIso={dateLabel !== "—" ? dateLabel : new Date().toISOString().slice(0, 10)}
+          vo2max={training.vo2max}
         />
       </section>
 

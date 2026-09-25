@@ -13,6 +13,7 @@ import {
 type Props = {
   actual: DailyActual[];
   todayIso: string;
+  vo2max?: number | null;
 };
 
 const W = 960;
@@ -20,7 +21,7 @@ const H = 272;
 const PAD = { top: 56, right: 12, bottom: 36, left: 36 };
 const PROJECTION_COLOR = "#c084fc";
 
-export function PreparationChart({ actual, todayIso }: Props) {
+export function PreparationChart({ actual, todayIso, vo2max }: Props) {
   const { chartStart, chartEnd } = chartWindow(todayIso);
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
@@ -35,7 +36,8 @@ export function PreparationChart({ actual, todayIso }: Props) {
     actual,
     chartStart,
     chartEnd,
-    todayIso
+    todayIso,
+    vo2max
   );
   const projectionPath = toSvgPath(forecast, scaleX, scaleY);
 
@@ -56,9 +58,10 @@ export function PreparationChart({ actual, todayIso }: Props) {
   return (
     <div className="prep-chart-wrap">
       <p className="muted chart-caption">
-        Índice 0–100 · tiempo uniforme. Punteadas = ideal log por reto.{" "}
-        <span style={{ color: PROJECTION_COLOR }}>Lila</span> = proyección a tu ritmo actual (
-        {slopeLabel}, basada en tus últimos datos).
+        Índice 0–100 (readiness, carga, VO₂/edad, sueño/HRV/BB).{" "}
+        <span style={{ color: "#f1f5f9" }}>Blanca</span> = hoy ·{" "}
+        <span style={{ color: PROJECTION_COLOR }}>Lila</span> = si mantienes el ritmo reciente (
+        {slopeLabel}, con techo por VO₂). Punteadas = ideal por fase hasta cada reto.
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} className="prep-chart" role="img" aria-label="Preparación vs retos">
         {[0, 25, 50, 75, 100].map((y) => {
@@ -204,7 +207,7 @@ export function PreparationChart({ actual, todayIso }: Props) {
               <th>Reto</th>
               <th>Fecha</th>
               <th>Proyección</th>
-              <th>Ideal</th>
+              <th>Ideal reto</th>
               <th>Gap</th>
             </tr>
           </thead>
