@@ -4,15 +4,17 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Fitness Coach — Diego",
-  description: "Read-only coaching dashboard (mmB 2027 + Reto Letras)",
+  description: "Coaching dashboard (vChallenges 21K, mmB 2027, Letras, 70.3 Cartagena)",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
       <body>
-        <DashboardNav />
-        {children}
+        <div className="app-shell">
+          <DashboardNav />
+          <div className="app-main">{children}</div>
+        </div>
       </body>
     </html>
   );

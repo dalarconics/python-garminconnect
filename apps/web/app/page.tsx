@@ -1,5 +1,7 @@
+import { CoachChat } from "@/components/CoachChat";
 import { PreparationChart } from "@/components/PreparationChart";
 import { RecoveryMilestonesCard } from "@/components/RecoveryMilestonesCard";
+import { TodayCard } from "@/components/TodayCard";
 import { formatLastUpdatedLabel, latestTimestamp } from "@/lib/lastUpdated";
 import { buildActualSeries } from "@/lib/preparation";
 import { MVP_USER_ID, supabase } from "@/lib/supabase";
@@ -145,14 +147,6 @@ function zoneClass(zone: string) {
   return `badge badge-${zone}`;
 }
 
-function metricStatus(
-  value: number | null | undefined,
-  ok: boolean | null
-): "ok" | "warn" | "bad" | "na" {
-  if (value == null || ok == null) return "na";
-  return ok ? "ok" : value !== null ? "bad" : "na";
-}
-
 function buildFocusItems(
   readiness: ReadinessRow | null,
   payload: SnapshotPayload
@@ -286,14 +280,21 @@ export default async function HomePage() {
 
   return (
     <main>
-      <header className="header">
-        <div>
-          <h1 style={{ margin: 0 }}>Fitness Coach</h1>
-          <p className="muted" style={{ margin: "0.25rem 0 0" }}>
-            {lastUpdatedLabel}
-          </p>
-        </div>
-      </header>
+      <p className="muted" style={{ marginTop: 0 }}>
+        {lastUpdatedLabel}
+      </p>
+
+      <CoachChat />
+
+      <TodayCard
+        zone={zone}
+        scoreOk={readiness?.score_ok ?? null}
+        recommendation={readiness?.recommendation || payload.readiness?.recommendation || "—"}
+        metrics={metrics}
+        statusPhrase={training.status_phrase}
+        acwr={training.acwr}
+        vo2max={training.vo2max}
+      />
 
       <RecoveryMilestonesCard
         todayIso={dateLabel !== "—" ? dateLabel : new Date().toISOString().slice(0, 10)}
@@ -309,31 +310,6 @@ export default async function HomePage() {
           todayIso={dateLabel !== "—" ? dateLabel : new Date().toISOString().slice(0, 10)}
           vo2max={training.vo2max}
         />
-      </section>
-
-      <section className="card card-highlight">
-        <h2 style={{ marginTop: 0 }}>Hoy</h2>
-        <span className={zoneClass(zone)}>
-          {zone} {readiness?.score_ok ?? "?"}/5
-        </span>
-        <p className="recommendation">
-          {readiness?.recommendation || payload.readiness?.recommendation || "—"}
-        </p>
-        <div className="metrics-grid">
-          {metrics.map((m) => (
-            <div key={m.label} className={`metric-cell ${metricStatus(null, m.ok)}`}>
-              <span className="metric-label">{m.label}</span>
-              <span className="metric-value">{m.value}</span>
-            </div>
-          ))}
-        </div>
-        {training.status_phrase || training.acwr != null ? (
-          <p className="load-line">
-            Carga: {training.status_phrase || "—"}
-            {training.acwr != null ? ` · ACWR ${training.acwr.toFixed(1)}` : ""}
-            {training.vo2max != null ? ` · VO₂ ${training.vo2max}` : ""}
-          </p>
-        ) : null}
       </section>
 
       <section className="card">
