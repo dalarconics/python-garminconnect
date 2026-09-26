@@ -1,91 +1,33 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-type ChatMessage = { role: "user" | "assistant"; content: string };
-
-type StoredChat = {
-  id: string;
-  title: string;
-  updatedAt: string;
-  messages: ChatMessage[];
-};
-
-const STORAGE_KEY = "fitness-coach-chats";
-const MAX_CHATS = 4;
-
-function loadChats(): StoredChat[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as StoredChat[]) : [];
-    return Array.isArray(parsed) ? parsed.slice(0, MAX_CHATS) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveChats(chats: StoredChat[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(chats.slice(0, MAX_CHATS)));
-}
+import {
+  type StoredChat,
+  chatHref,
+  loadChats,
+  setPendingFirstMessage,
+} from "@/lib/coachStorage";
 
 export function CoachChat() {
+  const router = useRouter();
   const [draft, setDraft] = useState("");
   const [chats, setChats] = useState<StoredChat[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [apiOk, setApiOk] = useState<boolean | null>(null);
 
   useEffect(() => {
     setChats(loadChats());
+    void fetch("/api/chat")
+      .then((res) => res.json())
+      .then((body: { configured?: boolean }) => setApiOk(Boolean(body.configured)))
+      .catch(() => setApiOk(false));
   }, []);
 
-  const active = chats.find((c) => c.id === activeId) ?? null;
-
-  function persist(next: StoredChat[], id: string | null) {
-    const trimmed = next.slice(0, MAX_CHATS);
-    setChats(trimmed);
-    setActiveId(id);
-    saveChats(trimmed);
-  }
-
-  async function send() {
-    const text = draft.trim();
-    if (!text || sending) return;
-    setSending(true);
-    setError(null);
-
-    const id = activeId ?? crypto.randomUUID();
-    const prior = active?.messages ?? [];
-    const userMessage: ChatMessage = { role: "user", content: text };
-    const nextMessages = [...prior, userMessage];
-    setDraft("");
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
-      });
-      const body = (await res.json()) as { ok?: boolean; reply?: string; error?: string };
-      if (!res.ok || !body.ok || !body.reply) {
-        setError(body.error || "No se pudo consultar al coach");
-        setSending(false);
-        return;
-      }
-      const stored: StoredChat = {
-        id,
-        title: (active?.title || text).slice(0, 80),
-        updatedAt: new Date().toISOString(),
-        messages: [...nextMessages, { role: "assistant", content: body.reply }],
-      };
-      const rest = chats.filter((c) => c.id !== id);
-      persist([stored, ...rest], id);
-    } catch {
-      setError("No se pudo consultar al coach");
-    } finally {
-      setSending(false);
-    }
+  function startConversation(text: string) {
+    const id = crypto.randomUUID();
+    setPendingFirstMessage(id, text);
+    router.push(chatHref(id));
   }
 
   return (
@@ -94,7 +36,10 @@ export function CoachChat() {
         className="coach-composer"
         onSubmit={(event) => {
           event.preventDefault();
-          void send();
+          const text = draft.trim();
+          if (!text) return;
+          setDraft("");
+          startConversation(text);
         }}
       >
         <textarea
@@ -102,42 +47,38 @@ export function CoachChat() {
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Pregunta por tu condición, la sesión o el próximo reto"
           rows={3}
-          disabled={sending}
         />
         <div className="coach-composer-bar">
-          <button type="button" className="coach-new" onClick={() => setActiveId(null)} disabled={sending}>
+          <button
+            type="button"
+            className="coach-new"
+            onClick={() => router.push(chatHref(crypto.randomUUID()))}
+          >
             Nueva
           </button>
-          <button type="submit" className="coach-send" disabled={sending || !draft.trim()}>
-            {sending ? "Pensando…" : "Enviar"}
+          <button type="submit" className="coach-send" disabled={!draft.trim()}>
+            Enviar
           </button>
         </div>
       </form>
-      {error ? <p className="dash-refresh-status error">{error}</p> : null}
-      {active ? (
-        <div className="coach-thread">
-          {active.messages.map((message, index) => (
-            <p key={`${active.id}-${index}`} className={`coach-bubble coach-${message.role}`}>
-              {message.content}
-            </p>
-          ))}
-        </div>
+
+      {apiOk === false ? (
+        <p className="dash-refresh-status error" style={{ marginTop: "0.5rem" }}>
+          Para activar el coach, configura <code>OPENAI_API_KEY</code> en Vercel y redeploy.
+        </p>
       ) : null}
+
       <h2 className="coach-history-title">Últimas conversaciones</h2>
       {chats.length === 0 ? (
         <p className="muted">Aún no hay conversaciones en este navegador.</p>
       ) : (
         <ul className="coach-history">
-          {chats.slice(0, MAX_CHATS).map((chat) => (
+          {chats.map((chat) => (
             <li key={chat.id}>
-              <button
-                type="button"
-                className={chat.id === activeId ? "coach-history-item active" : "coach-history-item"}
-                onClick={() => setActiveId(chat.id)}
-              >
+              <Link href={chatHref(chat.id)} className="coach-history-item">
                 <span>{chat.title}</span>
                 <span className="muted">{chat.updatedAt.slice(0, 10)}</span>
-              </button>
+              </Link>
             </li>
           ))}
         </ul>

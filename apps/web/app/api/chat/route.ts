@@ -19,6 +19,15 @@ function sanitize(messages: IncomingMessage[]) {
     .slice(-MAX_MESSAGES);
 }
 
+export async function GET() {
+  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  return NextResponse.json({
+    ok: true,
+    configured: Boolean(process.env.OPENAI_API_KEY),
+    model,
+  });
+}
+
 export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
