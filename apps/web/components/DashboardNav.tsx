@@ -26,7 +26,7 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function DashboardNav() {
+export function DashboardNav({ version }: { version: string }) {
   const path = usePathname();
   const router = useRouter();
   const [state, setState] = useState<RefreshState>("idle");
@@ -93,6 +93,7 @@ export function DashboardNav() {
           {message}
         </p>
       ) : null}
+      <p className="dash-version">{version}</p>
     </nav>
   );
 }

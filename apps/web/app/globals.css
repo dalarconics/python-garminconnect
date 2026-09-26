@@ -68,6 +68,13 @@ main {
   background: #1e293b;
 }
 
+.dash-version {
+  margin-top: auto;
+  padding: 0.75rem 0.35rem 0.15rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 .dash-refresh {
   margin-top: 0.75rem;
   background: var(--card);
