@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { CoachModelSelect } from "@/components/CoachModelSelect";
 import {
   type ChatMessage,
   type StoredChat,
@@ -12,14 +13,22 @@ import {
   takePendingFirstMessage,
   upsertChat,
 } from "@/lib/coachStorage";
+import { loadPreferredModel } from "@/lib/openaiModels";
 
-type ApiStatus = { configured: boolean; model?: string };
+type ApiStatus = {
+  configured: boolean;
+  models: string[];
+  defaultModel: string;
+};
 
-async function fetchReply(messages: ChatMessage[]): Promise<{ reply: string } | { error: string }> {
+async function fetchReply(
+  messages: ChatMessage[],
+  model: string
+): Promise<{ reply: string } | { error: string }> {
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages, model }),
   });
   const body = (await res.json()) as { ok?: boolean; reply?: string; error?: string };
   if (!res.ok || !body.ok || !body.reply) {
@@ -39,6 +48,7 @@ export function CoachChatScreen() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<ApiStatus | null>(null);
+  const [model, setModel] = useState("gpt-4o-mini");
   const [historyOpen, setHistoryOpen] = useState(false);
   const threadEndRef = useRef<HTMLDivElement>(null);
   const bootstrappedRef = useRef<string | null>(null);
@@ -50,10 +60,19 @@ export function CoachChatScreen() {
   useEffect(() => {
     void fetch("/api/chat")
       .then((res) => res.json())
-      .then((body: { configured?: boolean; model?: string }) => {
-        setApiStatus({ configured: Boolean(body.configured), model: body.model });
+      .then((body: { configured?: boolean; models?: string[]; defaultModel?: string }) => {
+        const defaultModel = body.defaultModel || "gpt-4o-mini";
+        const models = body.models?.length ? body.models : [defaultModel];
+        setApiStatus({
+          configured: Boolean(body.configured),
+          models,
+          defaultModel,
+        });
+        setModel(loadPreferredModel(defaultModel));
       })
-      .catch(() => setApiStatus({ configured: false }));
+      .catch(() =>
+        setApiStatus({ configured: false, models: ["gpt-4o-mini"], defaultModel: "gpt-4o-mini" })
+      );
   }, []);
 
   useEffect(() => {
@@ -74,6 +93,7 @@ export function CoachChatScreen() {
     };
     setChat(base);
     setError(null);
+    bootstrappedRef.current = null;
   }, [conversationId, router]);
 
   const persistAndSet = useCallback((next: StoredChat) => {
@@ -103,7 +123,7 @@ export function CoachChatScreen() {
       persistAndSet(withUser);
       setDraft("");
 
-      const result = await fetchReply(withUser.messages);
+      const result = await fetchReply(withUser.messages, model);
       if ("error" in result) {
         setError(result.error);
         setSending(false);
@@ -118,7 +138,7 @@ export function CoachChatScreen() {
       setSending(false);
       scrollToEnd();
     },
-    [apiStatus, persistAndSet, scrollToEnd, sending]
+    [apiStatus, model, persistAndSet, scrollToEnd, sending]
   );
 
   useEffect(() => {
@@ -137,13 +157,14 @@ export function CoachChatScreen() {
   }, [chat?.messages.length, scrollToEnd]);
 
   function startNewChat() {
-    const id = crypto.randomUUID();
-    router.push(chatHref(id));
+    router.push(chatHref(crypto.randomUUID()));
   }
 
   if (!conversationId || !chat) {
     return null;
   }
+
+  const models = apiStatus?.models ?? [model];
 
   return (
     <main className="chat-main">
@@ -172,7 +193,7 @@ export function CoachChatScreen() {
       {apiStatus && !apiStatus.configured ? (
         <p className="chat-api-hint dash-refresh-status error">
           OpenAI no está configurado. En Vercel → Settings → Environment Variables, agrega{" "}
-          <code>OPENAI_API_KEY</code> (solo Production o también Preview) y redeploy.
+          <code>OPENAI_API_KEY</code> y redeploy.
         </p>
       ) : null}
 
@@ -232,7 +253,12 @@ export function CoachChatScreen() {
             disabled={sending}
           />
           <div className="coach-composer-bar">
-            {apiStatus?.model ? <span className="muted chat-model">{apiStatus.model}</span> : null}
+            <CoachModelSelect
+              models={models}
+              value={model}
+              onChange={setModel}
+              disabled={sending}
+            />
             <button type="submit" className="coach-send" disabled={sending || !draft.trim()}>
               Enviar
             </button>

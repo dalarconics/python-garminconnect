@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { conditionPrompt, loadCondition } from "@/lib/condition";
+import { pickModel, serverModelCatalog } from "@/lib/openaiModels";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +21,12 @@ function sanitize(messages: IncomingMessage[]) {
 }
 
 export async function GET() {
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const { models, defaultModel } = serverModelCatalog();
   return NextResponse.json({
     ok: true,
     configured: Boolean(process.env.OPENAI_API_KEY),
-    model,
+    models,
+    defaultModel,
   });
 }
 
@@ -37,9 +39,9 @@ export async function POST(request: Request) {
     );
   }
 
-  let payload: { messages?: IncomingMessage[] };
+  let payload: { messages?: IncomingMessage[]; model?: string };
   try {
-    payload = (await request.json()) as { messages?: IncomingMessage[] };
+    payload = (await request.json()) as { messages?: IncomingMessage[]; model?: string };
   } catch {
     return NextResponse.json({ ok: false, error: "JSON inválido" }, { status: 400 });
   }
@@ -58,7 +60,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error }, { status: 502 });
   }
 
-  const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+  const catalog = serverModelCatalog();
+  const model = pickModel(payload.model, catalog.models, catalog.defaultModel);
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -87,7 +90,7 @@ export async function POST(request: Request) {
     if (!reply) {
       return NextResponse.json({ ok: false, error: "OpenAI no devolvió texto" }, { status: 502 });
     }
-    return NextResponse.json({ ok: true, reply });
+    return NextResponse.json({ ok: true, reply, model });
   } catch (err) {
     const error = err instanceof Error ? err.message : "No se pudo consultar OpenAI";
     return NextResponse.json({ ok: false, error }, { status: 502 });
