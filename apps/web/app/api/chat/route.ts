@@ -21,12 +21,14 @@ function sanitize(messages: IncomingMessage[]) {
 }
 
 export async function GET() {
-  const { models, defaultModel } = serverModelCatalog();
+  const configured = Boolean(process.env.OPENAI_API_KEY);
+  const { models, defaultModel } = await serverModelCatalog();
   return NextResponse.json({
     ok: true,
-    configured: Boolean(process.env.OPENAI_API_KEY),
+    configured,
     models,
     defaultModel,
+    modelsFromAccount: configured && models.length > 4,
   });
 }
 
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error }, { status: 502 });
   }
 
-  const catalog = serverModelCatalog();
+  const catalog = await serverModelCatalog();
   const model = pickModel(payload.model, catalog.models, catalog.defaultModel);
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {

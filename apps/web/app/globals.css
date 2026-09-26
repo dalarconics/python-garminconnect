@@ -379,7 +379,7 @@ a.coach-history-item {
   color: var(--text);
   font: inherit;
   cursor: pointer;
-  max-width: 9rem;
+  max-width: min(14rem, 42vw);
 }
 
 @media (max-width: 800px) {

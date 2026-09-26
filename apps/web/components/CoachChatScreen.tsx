@@ -68,7 +68,7 @@ export function CoachChatScreen() {
           models,
           defaultModel,
         });
-        setModel(loadPreferredModel(defaultModel));
+        setModel(loadPreferredModel(defaultModel, models));
       })
       .catch(() =>
         setApiStatus({ configured: false, models: ["gpt-4o-mini"], defaultModel: "gpt-4o-mini" })

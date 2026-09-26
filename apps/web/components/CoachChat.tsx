@@ -26,7 +26,8 @@ export function CoachChat() {
         setApiOk(Boolean(body.configured));
         const defaultModel = body.defaultModel || "gpt-4o-mini";
         setModels(body.models?.length ? body.models : [defaultModel]);
-        setModel(loadPreferredModel(defaultModel));
+        const list = body.models?.length ? body.models : [defaultModel];
+        setModel(loadPreferredModel(defaultModel, list));
       })
       .catch(() => setApiOk(false));
   }, []);
