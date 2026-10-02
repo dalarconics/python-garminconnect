@@ -63,6 +63,6 @@ Desde la raíz del repo, con la rama `cursor/shell-chat-hoy-43bc`:
 - `git pull`
 - `cd apps/web && npm install && npm run build`
 - `cd apps/web && vercel deploy --prod`
-- Renovar Garmin, solo en el Mac: `./.venv/bin/python scripts/refresh_garmin_session.py` y luego cargar el secreto `GARMINTOKENS_B64` del repo `dalarconics/python-garminconnect`.
+- Renovar Garmin en el Mac y publicar el secreto: `./scripts/publish_garmin_tokens_secret.sh --run-collect` (repo `dalarconics/python-garminconnect`).
 
 No hay tests de la UI. El collect de Garmin es el workflow Coaching Daily Collect en GitHub Actions.

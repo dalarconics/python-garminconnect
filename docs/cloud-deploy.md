@@ -64,10 +64,12 @@ Montar **volumen persistente** en `/data/garmin-tokens` para que los tokens Garm
 Opción A — login local → subir tokens:
 
 ```bash
-# En tu Mac (una sola vez)
+# En tu Mac (GitHub Actions secret GARMINTOKENS_B64)
+./scripts/publish_garmin_tokens_secret.sh --run-collect
+
+# Railway: empaquetar y subir al volumen /data/garmin-tokens
 python scripts/refresh_garmin_session.py
 tar czf garmin-tokens.tgz -C ~/.garminconnect .
-# Subir garmin-tokens.tgz al volumen Railway en /data/garmin-tokens
 ```
 
 Opción B — credenciales en env: Railway hace login en el primer `/collect`. Si Garmin pide MFA, hay que completar el login una vez (logs Railway o script local).
