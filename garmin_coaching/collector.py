@@ -14,6 +14,7 @@ from garmin_coaching.readiness import (
     classify,
     derive_thresholds_from_history,
 )
+from garmin_coaching.last_activity import fetch_last_activity
 from garmin_coaching.mesocycle import plan_week
 from garmin_coaching.session_planner import plan_session
 from garmin_coaching.weekly_sync import build_weekly_sport_rows
@@ -168,6 +169,7 @@ def build_daily_payload(
 
     mesocycle_week = plan_week(on_day)
     weekly_sport_load = build_weekly_sport_rows(client, through=on_day, lookback_days=120)
+    last_activity = fetch_last_activity(client)
 
     payload = {
         "date": ds,
@@ -180,6 +182,7 @@ def build_daily_payload(
         "macrocycle": phase_as_dict(phase),
         "milestones": milestones_as_dict(on_day),
         "training_load": training_load,
+        "last_activity": last_activity,
         "session": session,
         "whatsapp_message": format_whatsapp_message(
             {

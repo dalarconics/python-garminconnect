@@ -58,10 +58,12 @@ jobs:
           client = login_client(prompt=False)
           payload = build_daily_payload(client)
           result = upsert_daily_payload(payload)
+          la = payload.get("last_activity")
           print(json.dumps({
               "upsert": result,
               "zone": payload["readiness"]["zone"],
               "acwr": payload["training_load"].get("acwr"),
               "guards": payload["session"].get("guard_flags"),
+              "last_activity": la.get("name") if la else None,
           }, indent=2))
           PY
