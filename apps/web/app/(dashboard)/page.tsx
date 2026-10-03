@@ -1,4 +1,5 @@
 import { CoachChat } from "@/components/CoachChat";
+import { LastActivityCard } from "@/components/LastActivityCard";
 import { RecoveryMilestonesCard } from "@/components/RecoveryMilestonesCard";
 import { TodayCard } from "@/components/TodayCard";
 import { fetchDashboard } from "@/lib/dashboard";
@@ -94,6 +95,8 @@ export default async function HomePage() {
         acwr={training.acwr}
         vo2max={training.vo2max}
       />
+
+      <LastActivityCard activity={payload.last_activity} />
 
       <RecoveryMilestonesCard
         todayIso={todayIso}

@@ -574,6 +574,30 @@ a.coach-history-item {
   color: var(--muted);
 }
 
+.last-activity-title {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.last-activity-title a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.last-activity-title a:hover {
+  text-decoration: underline;
+}
+
+.last-activity-meta {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.875rem;
+}
+
+.last-activity-metrics {
+  margin-top: 0;
+}
+
 .session-title {
   margin: 0;
   font-size: 1.15rem;

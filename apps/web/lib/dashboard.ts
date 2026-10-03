@@ -41,6 +41,22 @@ export type SnapshotPayload = {
     acwr_status?: string;
     vo2max?: number;
   };
+  last_activity?: {
+    activity_id: number;
+    name: string;
+    sport: string;
+    type_key?: string | null;
+    type_label?: string | null;
+    start_time_local?: string | null;
+    start_time_gmt?: string | null;
+    duration_min?: number | null;
+    distance_km?: number | null;
+    elevation_gain_m?: number | null;
+    avg_hr?: number | null;
+    max_hr?: number | null;
+    calories?: number | null;
+    training_load?: number | null;
+  };
   readiness?: { recommendation?: string };
   thresholds?: Record<string, number>;
 };
