@@ -1,6 +1,6 @@
 """Unit tests for garmin_coaching.last_activity."""
 
-from garmin_coaching.last_activity import summarize_last_activity
+from garmin_coaching.last_activity import _first_activity_from_page, summarize_last_activity
 
 
 def test_summarize_last_activity_maps_garmin_fields():
@@ -31,3 +31,9 @@ def test_summarize_last_activity_maps_garmin_fields():
 def test_summarize_last_activity_returns_none_without_id():
     assert summarize_last_activity({"activityName": "Ghost"}) is None
     assert summarize_last_activity(None) is None
+
+
+def test_first_activity_from_page_prefers_most_recent_index():
+    act = {"activityId": 1, "activityName": "Latest"}
+    assert _first_activity_from_page([act]) == act
+    assert _first_activity_from_page({"activityList": [act]}) == act

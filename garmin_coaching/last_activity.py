@@ -53,9 +53,31 @@ def summarize_last_activity(raw: dict[str, Any] | None) -> dict[str, Any] | None
     }
 
 
+def _first_activity_from_page(page: Any) -> dict[str, Any] | None:
+    """Garmin may return a list or a dict wrapper; start=0 is the most recent."""
+    if isinstance(page, list) and page:
+        first = page[0]
+        return first if isinstance(first, dict) else None
+    if isinstance(page, dict):
+        for key in ("activityList", "activities", "items"):
+            rows = page.get(key)
+            if isinstance(rows, list) and rows:
+                first = rows[0]
+                return first if isinstance(first, dict) else None
+    return None
+
+
 def fetch_last_activity(client: Any) -> dict[str, Any] | None:
+    raw: dict[str, Any] | None = None
     try:
-        raw = client.get_last_activity()
+        candidate = client.get_last_activity()
+        if isinstance(candidate, dict):
+            raw = candidate
     except Exception:
-        return None
-    return summarize_last_activity(raw if isinstance(raw, dict) else None)
+        raw = None
+    if raw is None:
+        try:
+            raw = _first_activity_from_page(client.get_activities(0, 1))
+        except Exception:
+            return None
+    return summarize_last_activity(raw)

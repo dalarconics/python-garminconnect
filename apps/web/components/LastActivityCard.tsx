@@ -17,7 +17,9 @@ export function LastActivityCard({ activity }: Props) {
       <section className="card">
         <h2 style={{ marginTop: 0 }}>Última actividad</h2>
         <p className="muted" style={{ margin: 0 }}>
-          Sin datos de Garmin todavía. Pulsa Actualizar en la barra lateral tras el próximo collect.
+          Sin datos en el snapshot. Pulsa Actualizar y espera a que termine el collect en GitHub (1–2 min).
+          Si sigue vacío, el workflow debe correr código reciente en la rama configurada en{" "}
+          <code>ACTIONS_DISPATCH_REF</code> (por defecto <code>master</code>).
         </p>
       </section>
     );
