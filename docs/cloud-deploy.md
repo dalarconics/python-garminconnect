@@ -102,9 +102,11 @@ WHATSAPP_API_URL=...
 ## 4. Vercel (dashboard)
 
 ```bash
-cd apps/web
-vercel --prod
+./scripts/deploy_web_vercel.sh
+# or: cd apps/web && npm run deploy:prod
 ```
+
+Non-interactive (CI/agents): always pass `--yes`. The CLI must run with a logged-in session (`vercel login`) or `VERCEL_TOKEN` in the environment.
 
 Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
