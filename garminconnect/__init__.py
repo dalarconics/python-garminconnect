@@ -2661,11 +2661,12 @@ class Garmin:
         """Return last activity."""
         activities = self.get_activities(0, 1)
         if activities and isinstance(activities, list) and len(activities) > 0:
-            return activities[-1]
-        if activities and isinstance(activities, dict) and "activityList" in activities:
-            activity_list = activities["activityList"]
-            if activity_list and len(activity_list) > 0:
-                return activity_list[-1]
+            return activities[0]
+        if activities and isinstance(activities, dict):
+            for key in ("activityList", "activities", "items"):
+                activity_list = activities.get(key)
+                if isinstance(activity_list, list) and len(activity_list) > 0:
+                    return activity_list[0]
 
         return None
 
