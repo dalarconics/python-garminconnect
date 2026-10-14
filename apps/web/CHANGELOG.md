@@ -14,6 +14,24 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.3.1] - 2026-10-14
+
+Versión de parche (PATCH, ADR-009) introducida en la tarea T-0017, enfocada en la privacidad de logs públicos de CI/CD (DEC-004), saneamiento de advertencias de linter, trazabilidad de sesión y resiliencia en despliegues.
+
+### Añadido
+- **Trazabilidad de Restauración**: Registro explícito de la fuente de restauración de tokens de sesión Garmin (`source: supabase` o `source: b64_fallback`) en variables de entorno del runner de CI y logs técnicos de ejecución.
+- **Suite de Pruebas**: Tests unitarios en `tests/test_collector_privacy_and_resilience.py` que verifican la sanitización estricta de payloads técnicos en CI, el registro de advertencias con `_LOGGER.warning` en login y la trazabilidad de la fuente de restauración.
+
+### Modificado
+- **Privacidad en Logs de CI/CD (DEC-004)**: Recorte estricto de la salida estándar emitida en el paso de recolección de `.github/workflows/coaching-daily-collect.yml`, eliminando métricas de salud (`zone`, `acwr`), indicadores de control (`guards`) y datos identificables de la última actividad deportiva (`last_activity`). La salida se limita exclusivamente a metadatos técnicos: estado de la operación (`upsert`), persistencia de tokens (`tokens_persisted`) y fuente de restauración (`source`).
+- **Despliegue Web en Vercel**: Ajuste en `scripts/deploy_web_vercel.sh` para compatibilidad con la configuración de monorepo `Root Directory = apps/web` de Vercel mediante compilación local y despliegue directo de artefactos preconstruidos (`--prebuilt`).
+
+### Corregido
+- **Observabilidad de Errores (REQ-005)**: Sustitución de bloques silenciosos `except Exception: pass` en `scripts/garmin_auth.py:login_client` por registro estructurado con `_LOGGER.warning`, manteniendo la confidencialidad sin emitir tokens ni contraseñas.
+- **Saneamiento de Linter**: Resolución de 10 advertencias de `ruff` en adaptadores (`scripts/garmin_auth.py` y `services/collector/supabase_client.py`), incluyendo migración a `datetime.UTC` (`UP017`), importaciones de `collections.abc.Callable` (`UP035`), simplificación de condicionales anidados (`SIM102`) y eliminación de supresión ciega de excepciones (`S110` / `SIM105`).
+
+---
+
 ## [0.3.0] - 2026-10-13
 
 Versión introducida en el PR #2 (rama `ux/audit-2026-10`), enfocada en resolver integralmente la auditoría UX (P1, P2 y P3), unificar la identidad visual de la marca Tri-Coach y asegurar consistencia de datos en Supabase.

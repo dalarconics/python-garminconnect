@@ -15,9 +15,9 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Callable
 from getpass import getpass
 from pathlib import Path
-from typing import Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -171,6 +171,8 @@ def restore_tokens_from_supabase(dest_store: str | None = None) -> bool:
         client.di_client_id = tokens.get("di_client_id")
         client.dumps = lambda: json.dumps(tokens)
         client.dump(store)
+        os.environ["RESTORE_SOURCE"] = "supabase"
+        _LOGGER.info("Restored tokens from Supabase")
         return True
     except Exception as exc:
         _LOGGER.debug("Failed to restore tokens from Supabase: %s", exc)
@@ -214,31 +216,30 @@ def login_client(
         client.login(store)
         try:
             persist_tokens_to_supabase(store)
-        except Exception:
-            pass
+        except Exception as exc:
+            _LOGGER.warning("Could not persist tokens after login: %s", exc)
         return client
-    except Exception:
-        pass
+    except Exception as exc:
+        _LOGGER.warning("Could not login with stored tokens: %s", exc)
 
-    if token_file.is_file():
-        if restore_tokens_from_supabase(store):
+    if token_file.is_file() and restore_tokens_from_supabase(store):
+        try:
+            client = Garmin()
+            client.login(store)
             try:
-                client = Garmin()
-                client.login(store)
-                try:
-                    persist_tokens_to_supabase(store)
-                except Exception:
-                    pass
-                return client
-            except Exception:
-                pass
+                persist_tokens_to_supabase(store)
+            except Exception as exc:
+                _LOGGER.warning("Could not persist tokens after retry login: %s", exc)
+            return client
+        except Exception as exc:
+            _LOGGER.warning("Could not login with restored tokens: %s", exc)
 
     email, password = get_credentials(prompt=prompt)
     client = Garmin(email=email, password=password, prompt_mfa=mfa)
     client.login(store)
     try:
         persist_tokens_to_supabase(store)
-    except Exception:
-        pass
+    except Exception as exc:
+        _LOGGER.warning("Could not persist tokens after credentials login: %s", exc)
     return client
 
