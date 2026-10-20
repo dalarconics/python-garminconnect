@@ -50,6 +50,11 @@ caja copiable (`Copia y pega solo esta caja en este chat:` o
 `Pega esto en <agente>:`) cuando la herramienta no hace el handoff
 automatico (Articulo II.4 de la constitucion).
 
+La ventana HITL hace el handoff al coordinator; el coordinator crea tasks,
+subagentes y especialistas segun SDLC + EARS + SDD, tantos como el plan
+aprobado requiera y en paralelo cuando las tasks sean independientes
+(Articulo II.5).
+
 ## Sistema multi-agente SDD
 
 Metodologia canonica: `ies contract --doc sdd` (HITL + Spec-Driven
