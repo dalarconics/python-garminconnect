@@ -2,12 +2,21 @@
 schema_version: 1
 project_id: python-garminconnect
 layer: mid
-last_updated: '2026-10-19T20:00:00Z'
+last_updated: '2026-10-20T12:00:00Z'
 source: coordinator
 confidence: alta
 ---
 
 # Decisions
+
+## DEC-012: Operar con VS Code (GitHub Copilot)
+
+- **Fecha**: 2026-10-20.
+- **Autoridad**: el humano pidio «Pasa python-garminconnect a VS Code con el lote completo» y eligio «Opción 1: espera a la sesión del lint y luego pasa garmin a VS Code». El lint quedo en `master` con #6 y #7 (T-0039 done).
+- **Decision**: el proyecto declara `vscode` y hereda de `config/team.yaml` (ies-os 0.6.2, ADR-020): ventana HITL y coordinator grok-4.7; planner, implementer y viewer kimi-k3 (provisional); esfuerzo High; sin subagentes nativos, una ventana de VS Code por worktree. Sin excepciones de modelo. Reemplaza la seleccion Antigravity de DEC-008.
+- **Archivos**: se retiran `GEMINI.md`, `.gemini/` y `.agents/` generados; se generan `.github/copilot-instructions.md`, `.github/agents/` y `.github/skills/`. `.vscode/tasks.json` queda local (`.vscode/` ignorado, como `.ies/`). Se conservan `CLAUDE.md`, `.vscode/settings.json` y los workflows propios.
+- **Numeracion**: se reservo DEC-010 sin revisar el archivo; DEC-010 y DEC-011 ya existian, por eso este registro es DEC-012.
+- **Registro**: por el agente en nombre del humano.
 
 ## DEC-011: Aprobacion humana G0 de SPEC-004 y PLAN-004
 

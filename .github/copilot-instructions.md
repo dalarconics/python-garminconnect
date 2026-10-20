@@ -1,13 +1,6 @@
 <!-- Generado por IES-OS sync-adapters. Fuente canonica: contratos, skills y memoria del framework/proyecto. Edita las fuentes, no este archivo; 'python scripts/sync-adapters.py' detecta drift. -->
 
-# GEMINI.md — IES-OS (Google Gemini)
-
-Proyecto gestionado por IES-OS. El contexto canonico es:
-
-- Contratos: `ies contract <rol>`
-- Skills: `ies contract --skill <id>`
-- Memoria: `memory/` (usa solo la seleccionada por el prompt)
-- Tasks: `memory/mid/tasks.md`
+# Instrucciones Copilot — IES-OS
 
 ## Reglas IES (no negociables)
 
@@ -137,4 +130,4 @@ Development + EARS). Constitucion: Articulos I-VII heredados del framework
   cancelled ⚫, archived 🟤. No confundir con los emojis de readiness de los
   reportes `status` de la disciplina (🟢🟡⚪🔴).
 
-No hay credenciales en este repositorio: la API key vive en la variable de entorno `GEMINI_API_KEY`.
+Nota: no se fijan modelos en estos archivos; el equipo se hereda de `config/team.yaml` del framework y puede cambiar sin tocar este repo.
