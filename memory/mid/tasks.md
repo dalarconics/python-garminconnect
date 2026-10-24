@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 45
 source: ies-cli
-last_updated: '2026-10-24T18:32:31Z'
+last_updated: '2026-10-24T18:47:14Z'
 ---
 
 # Task Ledger
@@ -17,7 +17,7 @@ title: Rediseñar PreparationChart interactivo con zoom de horizonte, filtro por
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: PreparationChart interactivo ('use client') con selector de horizonte temporal
   (zoom), filtro por reto sincronizado con la tabla e inspector crosshair/tooltip
   por fecha. Serie real con área degradada sin nube saturada de puntos y sin recorte
@@ -50,17 +50,20 @@ allowlist:
 - apps/web/package-lock.json
 - deliverables/T-0044.md
 created_at: '2026-10-24T18:32:31Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-24T18:47:14Z'
+completed_at: '2026-10-24T18:47:14Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0044.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: b8a13ebffb03e58cd4b421ef566f0e8f70d75c84
+  git_after: b8a13ebffb03e58cd4b421ef566f0e8f70d75c84
+  result: success
 edits: []
 ```
