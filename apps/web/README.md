@@ -21,7 +21,8 @@ No Garmin credentials on Vercel — data comes from Supabase only.
 
 ## Versión y cambios
 
-- **Versión actual**: `0.5.4`
+- **Versión actual**: `0.5.5`
+- **Novedades en 0.5.5 (T-0044)**: rediseño interactivo de `PreparationChart` en `/retos` con selector de horizonte temporal (zoom corto, medio y temporada completa), filtro por reto sincronizado con tabla, inspector interactivo con crosshair y tarjeta de detalle en vivo, área suave con degradado sin saturación de círculos, resolución del recorte derecho en valores proyectados y mini barras de progreso.
 - **Novedades en 0.5.4 (T-0043)**: rediseño y centrado estilo Hero de `CoachChat` en panel principal (max-width 760px, saludo `Hola Diego, ¿cómo te ayudo?`, acciones rápidas y retiro de recorte 28vh) e impresión de versiones actual y anterior con fechas de despliegue en barra lateral (`DashboardNav`).
 - **Novedades en 0.5.3 (T-0040)**: privacidad estricta de logs en GitHub Actions (DEC-004), trazabilidad de fuente de tokens (supabase / b64_fallback), logging y resiliencia en scripts de autenticación (REQ-005) y script de despliegue en Vercel para apps/web.
 - **Novedades en 0.5.2 (T-0039)**: lint y formato del código Python de Tri-Coach limpios con ruff 0.17.1 para que el CI vuelva a ejecutar pytest; sin cambios de comportamiento.

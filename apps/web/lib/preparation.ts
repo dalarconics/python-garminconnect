@@ -88,12 +88,45 @@ export function daysBetween(a: string, b: string): number {
   return Math.round((parseDate(b) - parseDate(a)) / 86400000);
 }
 
+export type TimeHorizonKey = "short" | "medium" | "full";
+
+export type TimeHorizonDef = {
+  key: TimeHorizonKey;
+  label: string;
+  endDate: string;
+  description: string;
+};
+
+export const TIME_HORIZONS: Record<TimeHorizonKey, TimeHorizonDef> = {
+  short: {
+    key: "short",
+    label: "Corto plazo (21K)",
+    endDate: "2027-01-15",
+    description: "Hasta enero 2027 · Detalle sin compresión para vChallenges 21K",
+  },
+  medium: {
+    key: "medium",
+    label: "Medio plazo (mmB)",
+    endDate: "2027-08-10",
+    description: "Hasta agosto 2027 · Cubre mmB 21K",
+  },
+  full: {
+    key: "full",
+    label: "Temporada completa (70.3)",
+    endDate: "2027-11-29",
+    description: "Hasta noviembre 2027 · Macrociclo completo a 70.3 Cartagena",
+  },
+};
+
 export function chartEndDate(): string {
   return EVENTS.reduce((max, e) => (e.eventDate > max ? e.eventDate : max), "2027-11-29");
 }
 
-export function chartWindow(todayIso: string): { chartStart: string; chartEnd: string } {
-  const chartEnd = chartEndDate();
+export function chartWindow(
+  todayIso: string,
+  customEnd?: string
+): { chartStart: string; chartEnd: string } {
+  const chartEnd = customEnd || chartEndDate();
   const startMs = parseDate(todayIso) - CHART_HISTORY_DAYS * 86400000;
   const chartStart = new Date(startMs).toISOString().slice(0, 10);
   return { chartStart, chartEnd };
@@ -547,6 +580,30 @@ export function monthAxisTicks(
     }
   }
   return ticks;
+}
+
+/** Obtiene el índice ideal para un reto en una fecha específica. */
+export function getIdealIndexAtDate(event: EventDef, dateIso: string): number {
+  return Math.round(interpolateIdealIndex(idealAnchors(event), dateIso));
+}
+
+/** Calcula el porcentaje de avance relativo entre valor proyectado y meta (0–100%). */
+export function calculateProgressPercent(projected: number, target: number): number {
+  if (target <= 0) return 0;
+  return Math.max(0, Math.min(100, Math.round((projected / target) * 100)));
+}
+
+/** Proyecta el índice para una fecha futura manteniendo el ritmo y techo fisiológico. */
+export function getProjectedIndexAtDate(
+  actual: DailyActual[],
+  targetDate: string,
+  slopePerDay: number,
+  vo2max?: number | null
+): number {
+  if (actual.length === 0) return 40;
+  const sorted = [...actual].sort((a, b) => a.date.localeCompare(b.date));
+  const last = sorted[sorted.length - 1];
+  return indexAtDateFromRhythm(last.date, last.index, targetDate, slopePerDay, vo2max ?? null);
 }
 
 /** Sanity check: índice típico Diego AMARILLO + ACWR 1.1 (para tests manuales). */
