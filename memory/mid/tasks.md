@@ -1,9 +1,9 @@
 ---
 schema_version: 1
 project_id: python-garminconnect
-next_id: 43
+next_id: 44
 source: ies-cli
-last_updated: '2026-10-24T17:57:35Z'
+last_updated: '2026-10-24T17:58:17Z'
 ---
 
 # Task Ledger
@@ -672,5 +672,66 @@ metrics:
   git_before: 21b953010eb39d55f70257081816dbdaea89811e
   git_after: 21b953010eb39d55f70257081816dbdaea89811e
   result: success
+edits: []
+```
+
+## T-0043 — CoachChat centrado estilo Hero y visualización de versiones en barra lateral (SemVer 0.5.4)
+
+```yaml
+id: T-0043
+title: CoachChat centrado estilo Hero y visualización de versiones en barra lateral
+  (SemVer 0.5.4)
+project_id: python-garminconnect
+origin: human
+destination: implementer
+status: ready
+input: 'Rediseñar y centrar CoachChat en panel principal estilo Hero (max-width 760px,
+  saludo Hola Diego, acciones rápidas, composer redondeado con CoachModelSelect, historial
+  estilizado). Mostrar en pie de DashboardNav versión actual y versión anterior con
+  fecha de despliegue desde CHANGELOG.md (v0.5.4 · <sha> · 2026-10-24 y Ant: v0.5.3
+  · 2026-10-24). Actualizar tests y bump SemVer 0.5.4 PATCH.'
+expected_output: CoachChat centrado estilo Hero sin clipping, barra lateral con versión
+  actual y anterior con fechas, tests pasando, SemVer 0.5.4 documentado en CHANGELOG.md
+  y deliverable T-0043.md.
+parent_task: null
+dependencies: []
+priority: medium
+profile: fast-track
+autonomy: hitl
+execution_mode: null
+requested_iterations: null
+skills: []
+memory_refs: []
+acceptance_criteria:
+- npm --prefix apps/web test pasa
+- CoachChat centrado con max-width 760px y sin max-height 28vh
+- DashboardNav muestra versión actual 0.5.4 y versión anterior 0.5.3 con fechas
+- ies gate --task T-0043 en PASS
+allowlist:
+- apps/web/components/CoachChat.tsx
+- apps/web/components/DashboardNav.tsx
+- apps/web/app/(dashboard)/layout.tsx
+- apps/web/app/globals.css
+- apps/web/lib/versionInfo.ts
+- apps/web/lib/version.test.mjs
+- apps/web/tests/patch-layout-chat/layout-hierarchy.test.mjs
+- apps/web/CHANGELOG.md
+- apps/web/README.md
+- apps/web/package.json
+- apps/web/package-lock.json
+- deliverables/T-0043.md
+created_at: '2026-10-24T17:58:17Z'
+started_at: null
+completed_at: null
+blocked_reason: null
+superseded_by: null
+superseded_reason: null
+terminal_status: null
+output_ref: null
+approval:
+  required: true
+  approved_by: null
+  approved_at: null
+metrics: {}
 edits: []
 ```
