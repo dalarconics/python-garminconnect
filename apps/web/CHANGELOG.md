@@ -14,6 +14,26 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.5.4] - 2026-10-24
+
+Versión de parche de `T-0043` (`ADR-009`): rediseño y centrado estilo Hero de `CoachChat` en panel principal y visualización de versiones (actual y anterior con fechas de despliegue) en la barra lateral.
+
+### Añadido
+- **`CoachChat` estilo Hero centrado (`apps/web/components/CoachChat.tsx`, `apps/web/app/globals.css`)**:
+  - Centrado permanente en panel principal con contenedor `width: 100%; max-width: 760px; margin: 0 auto 2rem;`.
+  - Retiro de la restricción `max-height: 28vh` eliminando recortes visuales del bloque.
+  - Saludo centrado estilo Hero: `<h2 className="coach-hero-title">Hola Diego, ¿cómo te ayudo?</h2>`.
+  - Fila centrada de píldoras de acción rápida (`.coach-quick-actions`): «🏃 Analizar sesión de hoy», «🔋 Revisar mi recuperación», «📈 Ajustar carga semanal» y «🎯 Plan 70.3 Cartagena» con despacho directo al hacer clic.
+  - Compositor rediseñado como tarjeta con `border-radius: 14px`, `textarea` limpio de 2 filas y barra inferior `.coach-composer-bar` distribuyendo selector estático `<CoachModelSelect />` a la izquierda y acciones `Nueva conversación` + `Enviar` a la derecha.
+  - Sección de `Últimas conversaciones` centrada al mismo ancho (`760px`) con icono circular de burbuja de chat a la izquierda y título con fecha en texto `.muted` a la derecha.
+- **Historial de versiones en barra lateral (`apps/web/lib/versionInfo.ts`, `apps/web/components/DashboardNav.tsx`, `apps/web/app/(dashboard)/layout.tsx`)**:
+  - Módulo puro `apps/web/lib/versionInfo.ts` para parsear versiones y fechas desde `CHANGELOG.md` (`## [X.Y.Z] - YYYY-MM-DD`).
+  - `DashboardNav` (`.dash-version`) muestra en dos líneas legibles:
+    - Versión actual: `v0.5.4 · <sha> · 2026-10-24` (o `v0.5.4 · 2026-10-24` sin SHA de commit).
+    - Versión anterior: `Ant: v0.5.3 · 2026-10-24`.
+
+---
+
 ## [0.5.3] - 2026-10-24
 
 Versión de parche de `T-0040` (`DEC-004`, `REQ-005`, `ADR-009`): privacidad estricta de logs en GitHub Actions, logging estructurado y resiliencia en autenticación Garmin y Supabase, trazabilidad de restore y script de despliegue en Vercel.

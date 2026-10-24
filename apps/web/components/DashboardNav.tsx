@@ -130,7 +130,16 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function DashboardNav({ version }: { version: string }) {
+export function DashboardNav({
+  version,
+  currentVersion,
+  previousVersion,
+}: {
+  version?: string;
+  currentVersion?: string;
+  previousVersion?: string | null;
+}) {
+  const activeCurrentVersion = currentVersion ?? version ?? "";
   const path = usePathname();
   const router = useRouter();
   const [state, setState] = useState<RefreshState>("idle");
@@ -242,7 +251,12 @@ export function DashboardNav({ version }: { version: string }) {
           {message}
         </div>
       ) : null}
-      <p className="dash-version">{version}</p>
+      <div className="dash-version">
+        <div className="dash-version-current">{activeCurrentVersion}</div>
+        {previousVersion ? (
+          <div className="dash-version-previous">{previousVersion}</div>
+        ) : null}
+      </div>
     </div>
   );
 }

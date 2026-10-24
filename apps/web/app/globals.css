@@ -257,20 +257,70 @@ table,
   padding: 0.75rem 0.85rem 1rem;
   font-size: 0.75rem;
   color: var(--muted);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.dash-version-current {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.dash-version-previous {
+  color: #64748b;
+  font-size: 0.7rem;
 }
 
 .coach-chat {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 2rem;
+}
+
+.coach-hero-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text);
+  margin: 0 0 1rem;
+  letter-spacing: -0.01em;
+}
+
+.coach-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
   margin-bottom: 1.25rem;
-  max-height: 28vh;
-  min-height: 180px;
+}
+
+.coach-quick-action-pill {
+  background: #1e293b;
+  color: var(--text);
+  border: 1px solid #334155;
+  border-radius: 9999px;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  font-size: 0.825rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.coach-quick-action-pill:hover {
+  background: #334155;
+  border-color: #64748b;
+  transform: translateY(-1px);
 }
 
 .coach-composer {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 0.75rem;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
@@ -301,9 +351,20 @@ table,
 
 .coach-composer-bar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-wrap: wrap;
+}
+
+.coach-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 .coach-send,
@@ -348,12 +409,18 @@ table,
   border: 1px solid #334155;
 }
 
+.coach-history-section {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
 .coach-history-title {
   margin: 1rem 0 0.4rem;
   font-size: 0.85rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+  font-weight: 600;
 }
 
 .coach-history {
@@ -364,15 +431,57 @@ table,
   flex-direction: column;
   gap: 0.35rem;
   overflow-y: auto;
-  max-height: 120px;
+  max-height: 180px;
 }
 
 .coach-history-item {
   width: 100%;
   display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.85rem;
   text-align: left;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.coach-history-item:hover {
+  background: #1e293b;
+  border-color: #64748b;
+}
+
+.coach-history-bubble-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.coach-history-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.coach-history-item-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coach-history-item-date {
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .coach-history-item.active {
