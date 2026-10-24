@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 43
 source: ies-cli
-last_updated: '2026-10-24T16:27:14Z'
+last_updated: '2026-10-24T16:57:39Z'
 ---
 
 # Task Ledger
@@ -587,6 +587,7 @@ allowlist:
 - apps/web/package-lock.json
 - apps/web/.dependency-cruiser.cjs
 - .ies/gate.yaml
+- deliverables/T-0041.md
 created_at: '2026-10-20T18:44:04Z'
 started_at: null
 completed_at: null
@@ -600,7 +601,12 @@ approval:
   approved_by: null
   approved_at: null
 metrics: {}
-edits: []
+edits:
+- at: '2026-10-24T16:57:39Z'
+  actor: coordinator
+  reason: Incluir deliverables/T-0041.md en la allowlist de T-0041
+  fields:
+  - allowlist
 ```
 
 ## T-0042 — Evaluación de viabilidad y paridad de API oficial de Garmin Connect para Tri-Coach
