@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 43
 source: ies-cli
-last_updated: '2026-10-24T16:57:39Z'
+last_updated: '2026-10-24T16:59:04Z'
 ---
 
 # Task Ledger
@@ -469,7 +469,7 @@ title: Privacidad de logs CI, logging en login_client, origen del restore y depl
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: 'Recoge lo pendiente de T-0017 (cancelada por decision de Diego, ''Ok, adelante
   con A''); el ruff lo cubre T-0039. Partir de master tras T-0039; la rama local task/T-0017
   (f3fc13a) sirve de referencia, no se mezcla tal cual. 1. Sustituir los except Exception:
@@ -518,18 +518,21 @@ allowlist:
 - apps/web/README.md
 - deliverables/T-0040.md
 created_at: '2026-10-20T18:43:53Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-24T16:59:04Z'
+completed_at: '2026-10-24T16:59:04Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0040.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: 21b953010eb39d55f70257081816dbdaea89811e
+  git_after: 21b953010eb39d55f70257081816dbdaea89811e
+  result: success
 edits:
 - at: '2026-10-24T16:26:55Z'
   actor: coordinator
@@ -617,7 +620,7 @@ title: Evaluación de viabilidad y paridad de API oficial de Garmin Connect para
 project_id: python-garminconnect
 origin: coordinator
 destination: researcher
-status: ready
+status: done
 input: 'Inspeccionar en modo solo lectura el repositorio actual (garmin_coaching/collector.py,
   garmin_coaching/last_activity.py, garmin_coaching/weekly_sync.py, garmin_coaching/storage.py,
   services/collector/, scripts/garmin_auth.py, supabase/migrations/) y contrastarlo
@@ -651,17 +654,20 @@ acceptance_criteria:
 allowlist:
 - deliverables/T-0042.md
 created_at: '2026-10-24T16:27:14Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-24T16:59:04Z'
+completed_at: '2026-10-24T16:59:04Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0042.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: 21b953010eb39d55f70257081816dbdaea89811e
+  git_after: 21b953010eb39d55f70257081816dbdaea89811e
+  result: success
 edits: []
 ```
