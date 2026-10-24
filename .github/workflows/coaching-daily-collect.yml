@@ -38,12 +38,22 @@ jobs:
           GARMINTOKENS: ~/.garminconnect
         run: |
           mkdir -p "$HOME/.garminconnect"
-          python -c 'import sys; sys.path.insert(0, "scripts"); from garmin_auth import restore_tokens_from_supabase; restore_tokens_from_supabase()' || true
-          if [ ! -f "$HOME/.garminconnect/garmin_tokens.json" ] && [ -n "$GARMINTOKENS_B64" ]; then
+          RESTORE_SOURCE="none"
+          if python -c 'import sys; sys.path.insert(0, "scripts"); from garmin_auth import restore_tokens_from_supabase; sys.exit(0 if restore_tokens_from_supabase() else 1)'; then
+            RESTORE_SOURCE="supabase"
+          elif [ -n "$GARMINTOKENS_B64" ]; then
             echo "$GARMINTOKENS_B64" | base64 -d | tar xzf - -C "$HOME/.garminconnect"
+            if [ -f "$HOME/.garminconnect/garmin_tokens.json" ]; then
+              RESTORE_SOURCE="b64_fallback"
+            fi
           fi
+          if [ -n "${GITHUB_ENV:-}" ]; then
+            echo "RESTORE_SOURCE=$RESTORE_SOURCE" >> "$GITHUB_ENV"
+          fi
+          echo "Token restore source: $RESTORE_SOURCE"
 
       - name: Collect and upsert to Supabase
+        id: collect
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -53,7 +63,14 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import logging
+          import os
           import sys
+
+          logging.basicConfig(
+              level=logging.INFO,
+              format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+          )
           sys.path.insert(0, "scripts")
           from garmin_auth import login_client, persist_tokens_to_supabase
           from garmin_coaching.collector import build_daily_payload
@@ -63,13 +80,11 @@ jobs:
           payload = build_daily_payload(client)
           result = upsert_daily_payload(payload)
           persisted = persist_tokens_to_supabase()
-          la = payload.get("last_activity")
+          restore_source = os.environ.get("RESTORE_SOURCE", "unknown")
+          upsert_status = "ok" if (isinstance(result, dict) and result.get("status") == "ok") else "fallo"
           print(json.dumps({
-              "upsert": result,
+              "upsert": upsert_status,
               "tokens_persisted": persisted,
-              "zone": payload["readiness"]["zone"],
-              "acwr": payload["training_load"].get("acwr"),
-              "guards": payload["session"].get("guard_flags"),
-              "last_activity": la.get("name") if la else None,
+              "source": restore_source,
           }, indent=2))
           PY

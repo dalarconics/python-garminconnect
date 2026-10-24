@@ -14,6 +14,20 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.5.3] - 2026-10-24
+
+Versión de parche de `T-0040` (`DEC-004`, `REQ-005`, `ADR-009`): privacidad estricta de logs en GitHub Actions, logging estructurado y resiliencia en autenticación Garmin y Supabase, trazabilidad de restore y script de despliegue en Vercel.
+
+### Cambiado
+- **Privacidad estricta de logs en CI (`.github/workflows/coaching-daily-collect.yml`)**: Conforme a `DEC-004`, el payload JSON impreso en stdout por el paso de recolección diaria se sanitiza completamente: se eliminan las métricas fisiológicas (`readiness`, `zone`, `acwr`), banderas de protección de sesión (`guards`) y detalles de la última actividad deportiva (`last_activity` y ubicación geográfica). La salida pública en Actions se restringe exclusivamente a metadatos técnicos: estado de la operación (`upsert`: "ok" | "fallo"), persistencia de tokens (`tokens_persisted`: booleano) y fuente de restauración (`source`). Se configura el nivel de logging de Python a `INFO`.
+- **Trazabilidad de restauración de tokens**: El paso `Restore Garmin tokens` en el workflow de Actions detecta y registra explícitamente en el log y en `$GITHUB_ENV` el origen de los tokens (`RESTORE_SOURCE` = `supabase` o `b64_fallback`).
+- **Logging estructurado y sanitizado en `scripts/garmin_auth.py` (`REQ-005`)**: En `login_client`, se reemplazan los bloques `except Exception: pass` silenciosos por advertencias `_LOGGER.warning` sanitizadas que redactan contraseñas y claves de API (`_sanitize_error`), garantizando observabilidad sin fuga de secretos en logs.
+- **Resiliencia y aviso en persistencia a Supabase (`scripts/garmin_auth.py`)**: `persist_tokens_to_supabase` emite un `_LOGGER.warning` explícito ante respuestas nulas de upsert o excepciones de red/persistencia, evitando fallos silenciosos.
+- **Trazabilidad en `restore_tokens_from_supabase` (`scripts/garmin_auth.py`)**: Establece `os.environ["RESTORE_SOURCE"] = "supabase"` y registra un evento informativo `_LOGGER.info` al completar la restauración.
+- **Script de despliegue en Vercel (`scripts/deploy_web_vercel.sh`)**: Actualizado con `set -euo pipefail` y configurado para proyectos con `Root Directory = apps/web` mediante precompilación local (`vercel build --prod --yes`) y despliegue de artefacto preconstruido (`vercel deploy --prebuilt --prod --yes`).
+
+---
+
 ## [0.5.2] - 2026-10-20
 
 Versión de parche de `T-0039` (`DEC-009`): el CI de `master` vuelve a llegar a pytest. Sin cambios de comportamiento en la app web ni en el recolector.

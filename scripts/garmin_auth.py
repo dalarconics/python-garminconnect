@@ -155,6 +155,21 @@ def _ensure_env_local_in_os_environ() -> None:
             os.environ[k] = v
 
 
+def _sanitize_error(exc: Exception) -> str:
+    """Sanitize exception message to avoid leaking passwords or secret tokens."""
+    msg = str(exc)
+    for env_var in (
+        "GARMIN_PASSWORD",
+        "PASSWORD",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_KEY",
+    ):
+        val = os.getenv(env_var)
+        if val and len(val) > 3 and val in msg:
+            msg = msg.replace(val, "[REDACTED]")
+    return msg
+
+
 def restore_tokens_from_supabase(dest_store: str | None = None) -> bool:
     """Restore Garmin tokens from Supabase to local store."""
     try:
@@ -174,6 +189,8 @@ def restore_tokens_from_supabase(dest_store: str | None = None) -> bool:
         client.di_client_id = tokens.get("di_client_id")
         client.dumps = lambda: json.dumps(tokens)
         client.dump(store)
+        os.environ["RESTORE_SOURCE"] = "supabase"
+        _LOGGER.info("Restored tokens from Supabase")
         return True
     except Exception as exc:
         _LOGGER.debug("Failed to restore tokens from Supabase: %s", exc)
@@ -187,15 +204,25 @@ def persist_tokens_to_supabase(src_store: str | None = None) -> bool:
         store = src_store or tokenstore_path()
         p = token_file_path(store)
         if not p.is_file():
+            _LOGGER.warning(
+                "Garmin token file not found at %s; cannot persist to Supabase", p
+            )
             return False
         raw_text = p.read_text(encoding="utf-8")
         token_data = json.loads(raw_text)
         from services.collector.supabase_client import upsert_garmin_tokens_to_supabase
 
         res = upsert_garmin_tokens_to_supabase(token_data)
-        return res is not None
+        if res is None:
+            _LOGGER.warning(
+                "Failed to persist Garmin tokens to Supabase: upsert returned None"
+            )
+            return False
+        return True
     except Exception as exc:
-        _LOGGER.debug("Failed to persist tokens to Supabase: %s", exc)
+        _LOGGER.warning(
+            "Failed to persist Garmin tokens to Supabase: %s", _sanitize_error(exc)
+        )
         return False
 
 
@@ -215,31 +242,43 @@ def login_client(
     client = Garmin()
     try:
         client.login(store)
-        try:  # noqa: SIM105 - kept explicit; T-0040 replaces with logging
+        try:
             persist_tokens_to_supabase(store)
-        except Exception:  # noqa: S110 - best effort; T-0040 replaces with logging
-            pass
+        except Exception as exc:
+            _LOGGER.warning(
+                "Could not persist tokens after login: %s", _sanitize_error(exc)
+            )
         return client
-    except Exception:  # noqa: S110 - best effort; T-0040 replaces with logging
-        pass
+    except Exception as exc:
+        _LOGGER.warning(
+            "Could not login with stored tokens: %s", _sanitize_error(exc)
+        )
 
     if token_file.is_file() and restore_tokens_from_supabase(store):
         try:
             client = Garmin()
             client.login(store)
-            try:  # noqa: SIM105 - kept explicit; T-0040 replaces with logging
+            try:
                 persist_tokens_to_supabase(store)
-            except Exception:  # noqa: S110 - best effort; T-0040 replaces with logging
-                pass
+            except Exception as exc:
+                _LOGGER.warning(
+                    "Could not persist tokens after retry login: %s",
+                    _sanitize_error(exc),
+                )
             return client
-        except Exception:  # noqa: S110 - best effort; T-0040 replaces with logging
-            pass
+        except Exception as exc:
+            _LOGGER.warning(
+                "Could not login with restored tokens: %s", _sanitize_error(exc)
+            )
 
     email, password = get_credentials(prompt=prompt)
     client = Garmin(email=email, password=password, prompt_mfa=mfa)
     client.login(store)
-    try:  # noqa: SIM105 - kept explicit; T-0040 replaces with logging
+    try:
         persist_tokens_to_supabase(store)
-    except Exception:  # noqa: S110 - best effort; T-0040 replaces with logging
-        pass
+    except Exception as exc:
+        _LOGGER.warning(
+            "Could not persist tokens after credentials login: %s",
+            _sanitize_error(exc),
+        )
     return client
