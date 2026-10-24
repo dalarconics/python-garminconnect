@@ -1,0 +1,16 @@
+[importlinter]
+root_packages =
+    garmin_coaching
+include_external_packages = True
+
+[importlinter:contract:1]
+name = garmin_coaching independiente de garminconnect, services, supabase, fastapi, requests
+type = forbidden
+source_modules =
+    garmin_coaching
+forbidden_modules =
+    garminconnect
+    services
+    supabase
+    fastapi
+    requests

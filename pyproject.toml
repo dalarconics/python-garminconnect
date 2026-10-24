@@ -110,6 +110,7 @@ linting = [
     "types-requests",
     "pre-commit",
     "codespell",
+    "import-linter",
 ]
 testing = [
     "coverage",
@@ -297,6 +298,7 @@ linting = [
     "types-requests",
     "pre-commit",
     "codespell",
+    "import-linter",
 ]
 testing = [
     "coverage",
