@@ -14,6 +14,27 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.5.5] - 2026-10-24
+
+Versión de parche de `T-0044` (`ADR-002`, `P02`, `P22`): rediseño interactivo de `PreparationChart` en `/retos` con selector de horizonte temporal (zoom), filtro por reto sincronizado con tabla, inspector interactivo (crosshair + tooltip en vivo), área sombreada con degradado, resolución del recorte derecho y mini barras de progreso.
+
+### Añadido
+- **Selector de horizonte temporal (Zoom) (`apps/web/components/PreparationChart.tsx`, `apps/web/lib/preparation.ts`)**: Pestañas `.prep-range-tabs` que permiten alternar entre:
+  - Corto plazo (21K) (hasta `2027-01-15`) para visión detallada y no comprimida del próximo reto y datos reales.
+  - Medio plazo (mmB) (hasta `2027-08-10`).
+  - Temporada completa (70.3) (hasta `2027-11-29`, por defecto).
+- **Filtro de reto enfocado (`apps/web/components/PreparationChart.tsx`)**: Píldoras `.prep-filter-pills` sincronizadas bidireccionalmente con hover y clic en `.projection-table`. La curva ideal del reto activo se destaca al 100 % (`strokeWidth="2.75"`, `opacity={1}`) y las curvas inactivas se atenúan (`opacity={0.16}`) eliminando el ruido visual de 4 líneas cruzadas.
+- **Inspector interactivo Crosshair y tarjeta de detalle en vivo (`apps/web/components/PreparationChart.tsx`)**: Interacción con cursor o touch que muestra línea guía vertical en SVG, nodo destacado en curva y tarjeta en vivo con Fecha (`formatDateEsCO`), Tipo/Índice (real o proyectado), Reto activo, Índice ideal y Gap (`+` o `−`). Sin interacción, resume de forma permanente el estado de hoy vs el reto próximo o enfocado.
+- **Visualización de progreso en tabla (`apps/web/components/PreparationChart.tsx`)**: Mini barras visuales de progreso (`projected / target`) con porcentaje exacto y color de cada reto.
+- **Suite de pruebas de `PreparationChart` (`apps/web/lib/preparation-chart.test.mjs`)**: Cobertura completa de horizonte temporal, cálculo de progreso, ausencia de recorte (`PAD.right >= 40`), preservación de responsive (`P02`) y arquitectura limpia (`P22` / `ADR-002`).
+
+### Cambiado
+- **Serie de preparación real (`apps/web/components/PreparationChart.tsx`)**: Reemplazo de la nube saturada de círculos continuos por un área rellena con gradiente vertical suave (`#f1f5f9` al 22 % a transparente) bajo la curva real y nodos clave destacados (inicio, hoy con halo destacado y valor, e interacción hover).
+- **Geometría del gráfico y eliminación del recorte derecho (`apps/web/components/PreparationChart.tsx`)**: Aumento de altura a `H = 310` y `PAD.right = 44`, con anclaje inteligente y cápsula `<rect rx="5">` para los valores proyectados (`dx > W - 56`), evitando cualquier corte en el borde derecho.
+- **Actualización de versión del sistema**: Incremento a `0.5.5` en `package.json`, `package-lock.json`, `README.md` y suite `version.test.mjs`.
+
+---
+
 ## [0.5.4] - 2026-10-24
 
 Versión de parche de `T-0043` (`ADR-009`): rediseño y centrado estilo Hero de `CoachChat` en panel principal y visualización de versiones (actual y anterior con fechas de despliegue) en la barra lateral.
