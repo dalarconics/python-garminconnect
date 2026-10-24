@@ -1,9 +1,9 @@
 ---
 schema_version: 1
 project_id: python-garminconnect
-next_id: 42
+next_id: 43
 source: ies-cli
-last_updated: '2026-10-20T19:35:20Z'
+last_updated: '2026-10-24T16:27:14Z'
 ---
 
 # Task Ledger
@@ -16,7 +16,7 @@ title: Sincronización de adaptadores canónicos a IES 0.2.0 y actualización de
 project_id: python-garminconnect
 origin: coordinator
 destination: implementer
-status: ready
+status: cancelled
 input: Sincronizar los 9 adaptadores desactualizados del proyecto utilizando el intérprete
   Python del framework (/Users/alarcondiegof/ies-projects/ies-framework/.venv/bin/python)
   y scripts/sync-adapters.py sin --force. Preservar archivos preexistentes (CLAUDE.md
@@ -58,7 +58,7 @@ allowlist:
 - .ies/adapters.json
 created_at: '2026-10-14T17:37:15Z'
 started_at: null
-completed_at: null
+completed_at: '2026-10-24T16:26:25Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
@@ -68,7 +68,8 @@ approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  cancel_reason: Obsoleta tras migración a ies-os 0.5.0+ / 0.7.0 (ADR-019)
 edits: []
 ```
 
@@ -80,7 +81,7 @@ title: Especificar correccion visual y responsive de Tri-Coach (SPEC-002)
 project_id: python-garminconnect
 origin: coordinator
 destination: planner
-status: ready
+status: cancelled
 input: 'Preparar exclusivamente la propuesta completa de SPEC-002 layout-responsive
   y PLAN-002 para corregir la distribucion a la izquierda de Tri-Coach reportada por
   el humano en Safari. Aprobacion recibida: ''Aprobado, HITL por gate hasta nueva
@@ -147,7 +148,7 @@ allowlist:
 - deliverables/T-0021.md
 created_at: '2026-10-16T20:53:29Z'
 started_at: null
-completed_at: null
+completed_at: '2026-10-24T16:26:30Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
@@ -157,7 +158,9 @@ approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  cancel_reason: Obsoleta tras el cierre de SPEC-002 y migración a ies-os 0.5.0+ /
+    0.7.0 (ADR-019)
 edits: []
 ```
 
@@ -170,7 +173,7 @@ title: Plan integral de centrado Safari, historial sincronizado y GPT-6 Luna Hig
 project_id: python-garminconnect
 origin: coordinator
 destination: planner
-status: ready
+status: cancelled
 input: 'Preparacion aprobada por humano el 2026-10-17: SI al paquete de planificacion
   ampliado (centrado Safari + historial entre dispositivos), manteniendo HITL por
   gate. Nueva instruccion explicita: HITL es sesion humana de dudas/instrucciones
@@ -292,7 +295,7 @@ allowlist:
 - deliverables/T-0022.md
 created_at: '2026-10-17T12:04:35Z'
 started_at: null
-completed_at: null
+completed_at: '2026-10-24T16:26:38Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
@@ -302,7 +305,9 @@ approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  cancel_reason: Obsoleta tras el cierre de SPEC-002 y migración a ies-os 0.5.0+ /
+    0.7.0 (ADR-019)
 edits: []
 ```
 
@@ -314,7 +319,7 @@ title: Alinear contexto Codex y conservar seleccion Gemini para Antigravity
 project_id: python-garminconnect
 origin: human
 destination: coordinator
-status: ready
+status: cancelled
 input: 'Instruccion humana explicita del 2026-10-17: al usar Antigravity conservar
   Gemini; al usar Codex aplicar normas acordadas, actualizar para evitar bloqueos/ambiguedades.
   Scope administrativo de coordinator: activar Codex mediante ies env set con principal
@@ -372,7 +377,7 @@ allowlist:
 - deliverables/T-0023.md
 created_at: '2026-10-17T12:11:20Z'
 started_at: null
-completed_at: null
+completed_at: '2026-10-24T16:26:42Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
@@ -382,7 +387,9 @@ approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  cancel_reason: Obsoleta tras el cierre de SPEC-002 y migración a ies-os 0.5.0+ /
+    0.7.0 (ADR-019)
 edits: []
 ```
 
@@ -394,7 +401,7 @@ title: Materializar aprobacion G0 de SPEC-002 y PLAN-002
 project_id: python-garminconnect
 origin: human
 destination: coordinator
-status: ready
+status: cancelled
 input: 'El humano aprobo el plan integral con Adelante, aprobado tras confirmar el
   siguiente gate. Ejecutar solo G0 de deliverables/T-0022.md: materializar SPEC-002/PLAN-002
   y ADR003/004/005, actualizar standards segun ADR004, registrar DEC009 y aprobacion
@@ -437,7 +444,7 @@ allowlist:
 - deliverables/T-0024.md
 created_at: '2026-10-17T12:16:09Z'
 started_at: null
-completed_at: null
+completed_at: '2026-10-24T16:26:46Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
@@ -447,7 +454,9 @@ approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  cancel_reason: Obsoleta tras el cierre de SPEC-002 y migración a ies-os 0.5.0+ /
+    0.7.0 (ADR-019)
 edits: []
 ```
 
@@ -478,8 +487,7 @@ input: 'Recoge lo pendiente de T-0017 (cancelada por decision de Diego, ''Ok, ad
 expected_output: deliverables/<task>.md con logging, trazabilidad de restore, sanitizacion
   de logs de Actions, deploy script validado y version PATCH
 parent_task: null
-dependencies:
-- T-0039
+dependencies: []
 priority: high
 profile: fast-track
 autonomy: hitl
@@ -506,6 +514,9 @@ allowlist:
 - apps/web/CHANGELOG.md
 - apps/web/package.json
 - apps/web/package-lock.json
+- apps/web/lib/version.test.mjs
+- apps/web/README.md
+- deliverables/T-0040.md
 created_at: '2026-10-20T18:43:53Z'
 started_at: null
 completed_at: null
@@ -519,7 +530,14 @@ approval:
   approved_by: null
   approved_at: null
 metrics: {}
-edits: []
+edits:
+- at: '2026-10-24T16:26:55Z'
+  actor: coordinator
+  reason: Incluir grupo R de versionado y entregable T-0040; T-0039 ya mezclado en
+    master
+  fields:
+  - allowlist
+  - dependencies
 ```
 
 ## T-0041 — Gate arquitectura: import-linter y dependency-cruiser (ADR-002)
@@ -570,6 +588,63 @@ allowlist:
 - apps/web/.dependency-cruiser.cjs
 - .ies/gate.yaml
 created_at: '2026-10-20T18:44:04Z'
+started_at: null
+completed_at: null
+blocked_reason: null
+superseded_by: null
+superseded_reason: null
+terminal_status: null
+output_ref: null
+approval:
+  required: true
+  approved_by: null
+  approved_at: null
+metrics: {}
+edits: []
+```
+
+## T-0042 — Evaluación de viabilidad y paridad de API oficial de Garmin Connect para Tri-Coach
+
+```yaml
+id: T-0042
+title: Evaluación de viabilidad y paridad de API oficial de Garmin Connect para Tri-Coach
+project_id: python-garminconnect
+origin: coordinator
+destination: researcher
+status: ready
+input: 'Inspeccionar en modo solo lectura el repositorio actual (garmin_coaching/collector.py,
+  garmin_coaching/last_activity.py, garmin_coaching/weekly_sync.py, garmin_coaching/storage.py,
+  services/collector/, scripts/garmin_auth.py, supabase/migrations/) y contrastarlo
+  con la especificación de la API oficial de Garmin (Garmin Connect Developer Program:
+  Health API, Activity API, Training API). Evaluar si con la cuenta de Garmin Connect
+  y la API key oficial de Diego se puede operar Tri-Coach directamente y prescindir
+  del repositorio/librería python-garminconnect. Producir reporte estructurado en
+  deliverables/T-0042.md con: 1. Inventario exacto de llamadas actuales a python-garminconnect
+  y columnas Supabase. 2. Matriz de compatibilidad y paridad con la API Key Oficial
+  de Garmin. 3. Viabilidad de abandonar python-garminconnect y extraer a repo tri-coach.
+  4. Recomendación accionable Go/No-Go/Híbrido para HITL.'
+expected_output: deliverables/T-0042.md con inventario de métodos, matriz de paridad
+  de campos, viabilidad técnica de desacoplamiento y recomendación Go/No-Go para HITL.
+parent_task: null
+dependencies: []
+priority: medium
+profile: riguroso
+autonomy: hitl
+execution_mode: null
+requested_iterations: null
+skills: []
+memory_refs: []
+acceptance_criteria:
+- Inventario exhaustivo de métodos consumidos de python-garminconnect y mapeo a Supabase
+- Matriz de compatibilidad y paridad de campos con la API oficial de Garmin (Health,
+  Activity, Training)
+- Evaluación de viabilidad de desacoplamiento y diseño limpio hacia repo tri-coach
+  independiente
+- Recomendación accionable Go/No-Go/Híbrido y lista de validación de credenciales
+  para HITL
+allowlist:
+- deliverables/T-0042.md
+created_at: '2026-10-24T16:27:14Z'
 started_at: null
 completed_at: null
 blocked_reason: null
