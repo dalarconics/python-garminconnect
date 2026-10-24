@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 43
 source: ies-cli
-last_updated: '2026-10-24T16:59:04Z'
+last_updated: '2026-10-24T17:57:35Z'
 ---
 
 # Task Ledger
@@ -551,7 +551,7 @@ title: 'Gate arquitectura: import-linter y dependency-cruiser (ADR-002)'
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: 'Recreacion de T-0020 (cancelada por decision de Diego, ''Ok, adelante con
   A'') con la dependencia actualizada. Python: anadir import-linter a las dependencias
   de desarrollo en pyproject.toml y un archivo .importlinter con el contrato ''garmin_coaching
@@ -592,18 +592,21 @@ allowlist:
 - .ies/gate.yaml
 - deliverables/T-0041.md
 created_at: '2026-10-20T18:44:04Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-24T17:57:35Z'
+completed_at: '2026-10-24T17:57:35Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0041.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: 3f1badd3145f61eb95c8b1d60cc418735f13ce67
+  git_after: 3f1badd3145f61eb95c8b1d60cc418735f13ce67
+  result: success
 edits:
 - at: '2026-10-24T16:57:39Z'
   actor: coordinator
