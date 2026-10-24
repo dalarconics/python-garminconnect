@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 44
 source: ies-cli
-last_updated: '2026-10-24T17:58:17Z'
+last_updated: '2026-10-24T18:10:13Z'
 ---
 
 # Task Ledger
@@ -684,7 +684,7 @@ title: CoachChat centrado estilo Hero y visualización de versiones en barra lat
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: 'Rediseñar y centrar CoachChat en panel principal estilo Hero (max-width 760px,
   saludo Hola Diego, acciones rápidas, composer redondeado con CoachModelSelect, historial
   estilizado). Mostrar en pie de DashboardNav versión actual y versión anterior con
@@ -721,17 +721,20 @@ allowlist:
 - apps/web/package-lock.json
 - deliverables/T-0043.md
 created_at: '2026-10-24T17:58:17Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-24T18:10:13Z'
+completed_at: '2026-10-24T18:10:13Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0043.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: 3d803b56e9918abd154340d54748e822265d6d90
+  git_after: 3d803b56e9918abd154340d54748e822265d6d90
+  result: success
 edits: []
 ```
