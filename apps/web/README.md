@@ -21,7 +21,8 @@ No Garmin credentials on Vercel — data comes from Supabase only.
 
 ## Versión y cambios
 
-- **Versión actual**: `0.5.2`
+- **Versión actual**: `0.5.3`
+- **Novedades en 0.5.3 (T-0040)**: privacidad estricta de logs en GitHub Actions (DEC-004), trazabilidad de fuente de tokens (supabase / b64_fallback), logging y resiliencia en scripts de autenticación (REQ-005) y script de despliegue en Vercel para apps/web.
 - **Novedades en 0.5.2 (T-0039)**: lint y formato del código Python de Tri-Coach limpios con ruff 0.17.1 para que el CI vuelva a ejecutar pytest; sin cambios de comportamiento.
 - **Novedades en 0.5.1 (SPEC-004)**:
   - **Corrección de desborde métricas en TodayCard**: Cuadrícula con `repeat(auto-fit, minmax(7.5rem, 1fr))`, contención flexible `min-width: 0; overflow: hidden;` en celdas, y quiebre tipográfico seguro `overflow-wrap: break-word` que previene cualquier desborde horizontal de la celda de Puntuación de Sueño (`scrollWidth <= clientWidth`) en resoluciones de 375px a 1600px.
