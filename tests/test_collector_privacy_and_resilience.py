@@ -16,6 +16,7 @@ import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -48,7 +49,10 @@ def test_workflow_coaching_daily_collect_privacy_and_source():
     collect_run = collect_step.get("run", "")
 
     # Ensure prohibited fields are NOT printed in collect step
-    assert "readiness" not in collect_run or "readiness" not in collect_run.split("print")[1]
+    assert (
+        "readiness" not in collect_run
+        or "readiness" not in collect_run.split("print")[1]
+    )
     assert '"zone"' not in collect_run
     assert '"acwr"' not in collect_run
     assert '"guards"' not in collect_run
@@ -72,10 +76,7 @@ def test_collector_tree_no_leak_of_health_metrics_or_activities():
         REPO_ROOT / "scripts/garmin_auth.py",
     ]
     for target in scan_targets:
-        if target.is_file():
-            files = [target]
-        else:
-            files = list(target.rglob("*.py"))
+        files = [target] if target.is_file() else list(target.rglob("*.py"))
 
         for py_file in files:
             content = py_file.read_text(encoding="utf-8")
@@ -93,10 +94,13 @@ def test_restore_tokens_from_supabase_records_restore_source(tmp_path, monkeypat
         "di_client_id": "cid",
     }
 
-    with patch(
-        "services.collector.supabase_client.get_garmin_tokens_from_supabase",
-        return_value=tokens,
-    ), patch("scripts.garmin_auth._LOGGER.info") as mock_info:
+    with (
+        patch(
+            "services.collector.supabase_client.get_garmin_tokens_from_supabase",
+            return_value=tokens,
+        ),
+        patch("scripts.garmin_auth._LOGGER.info") as mock_info,
+    ):
         from scripts.garmin_auth import restore_tokens_from_supabase
 
         success = restore_tokens_from_supabase(dest_store=str(store_dir))
@@ -123,8 +127,13 @@ def test_login_client_logs_warning_on_token_login_failure(tmp_path):
         patch("scripts.garmin_auth.tokenstore_path", return_value=str(store_dir)),
         patch("scripts.garmin_auth.restore_tokens_from_supabase", return_value=False),
         patch("scripts.garmin_auth.persist_tokens_to_supabase", return_value=True),
-        patch("scripts.garmin_auth.Garmin", side_effect=[mock_client, mock_cred_client]),
-        patch("scripts.garmin_auth.get_credentials", return_value=("test@example.com", "my_super_secret_password")),
+        patch(
+            "scripts.garmin_auth.Garmin", side_effect=[mock_client, mock_cred_client]
+        ),
+        patch(
+            "scripts.garmin_auth.get_credentials",
+            return_value=("test@example.com", "my_super_secret_password"),
+        ),
         patch("scripts.garmin_auth._LOGGER.warning") as mock_warning,
     ):
         from scripts.garmin_auth import login_client
@@ -153,7 +162,10 @@ def test_login_client_logs_warning_on_persist_failure(tmp_path):
     with (
         patch("scripts.garmin_auth.tokenstore_path", return_value=str(store_dir)),
         patch("scripts.garmin_auth.restore_tokens_from_supabase", return_value=True),
-        patch("scripts.garmin_auth.persist_tokens_to_supabase", side_effect=RuntimeError("Supabase connection down")),
+        patch(
+            "scripts.garmin_auth.persist_tokens_to_supabase",
+            side_effect=RuntimeError("Supabase connection down"),
+        ),
         patch("scripts.garmin_auth.Garmin", return_value=mock_client),
         patch("scripts.garmin_auth._LOGGER.warning") as mock_warning,
     ):
@@ -176,20 +188,26 @@ def test_persist_tokens_to_supabase_logs_warning_on_failure(tmp_path):
     from scripts.garmin_auth import persist_tokens_to_supabase
 
     # Case 1: upsert returns None
-    with patch(
-        "services.collector.supabase_client.upsert_garmin_tokens_to_supabase",
-        return_value=None,
-    ), patch("scripts.garmin_auth._LOGGER.warning") as mock_warning:
+    with (
+        patch(
+            "services.collector.supabase_client.upsert_garmin_tokens_to_supabase",
+            return_value=None,
+        ),
+        patch("scripts.garmin_auth._LOGGER.warning") as mock_warning,
+    ):
         ok = persist_tokens_to_supabase(src_store=str(store_dir))
         assert ok is False
         assert mock_warning.call_count >= 1
         assert "Failed to persist" in mock_warning.call_args[0][0]
 
     # Case 2: upsert throws exception
-    with patch(
-        "services.collector.supabase_client.upsert_garmin_tokens_to_supabase",
-        side_effect=RuntimeError("Network error"),
-    ), patch("scripts.garmin_auth._LOGGER.warning") as mock_warning:
+    with (
+        patch(
+            "services.collector.supabase_client.upsert_garmin_tokens_to_supabase",
+            side_effect=RuntimeError("Network error"),
+        ),
+        patch("scripts.garmin_auth._LOGGER.warning") as mock_warning,
+    ):
         ok = persist_tokens_to_supabase(src_store=str(store_dir))
         assert ok is False
         assert mock_warning.call_count >= 1
