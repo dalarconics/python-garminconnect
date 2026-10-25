@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 46
 source: ies-cli
-last_updated: '2026-10-25T17:16:05Z'
+last_updated: '2026-10-25T17:31:30Z'
 ---
 
 # Task Ledger
@@ -17,7 +17,7 @@ title: Incluir indicadores de potencia de ciclismo en collector, LastActivityCar
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: 1) Collector y last_activity extraen FTP ciclismo, W/kg, avg_power, max_power,
   norm_power, IF, TSS y cadencia. 2) Menú lateral DashboardNav incluye /potencia con
   KPIs, 7 zonas de Coggan y vatios objetivo para Letras y 70.3 Cartagena. 3) SemVer
@@ -56,17 +56,20 @@ allowlist:
 - apps/web/package-lock.json
 - deliverables/T-0045.md
 created_at: '2026-10-25T17:16:05Z'
-started_at: null
-completed_at: null
+started_at: '2026-10-25T17:31:30Z'
+completed_at: '2026-10-25T17:31:30Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0045.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: f0de318ce571e82eca1829451244d9df2fbfa2e1
+  git_after: f0de318ce571e82eca1829451244d9df2fbfa2e1
+  result: success
 edits: []
 ```
