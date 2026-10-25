@@ -2,13 +2,13 @@
 schema_version: 1
 project_id: python-garminconnect
 layer: immediate
-last_updated: '2026-10-24T18:57:36Z'
+last_updated: '2026-10-25T17:33:04Z'
 source: ies bye
 ---
 
 # Handoff
 
-Ultima sesion: S-20261024-003 (cerrada 2026-10-24T18:57:36Z).
+Ultima sesion: S-20261025-004 (cerrada 2026-10-25T17:33:04Z).
 
 ## Para reanudar
 
@@ -24,8 +24,8 @@ Task sugerida al reanudar: (crear nueva)
 
 Bloques declarados `parcial` o `no-aplica` en entregas cerradas (ADR-011); el humano decide si generan followups.
 
-- [T-0044] diseno: no-aplica
-- [T-0044] despliegue: no-aplica
-- [T-0044] operacion-mantenimiento: no-aplica
-- [T-0044] seguridad: no-aplica
+- [T-0045] diseno: no-aplica
+- [T-0045] despliegue: no-aplica
+- [T-0045] operacion-mantenimiento: no-aplica
+- [T-0045] seguridad: no-aplica
 
