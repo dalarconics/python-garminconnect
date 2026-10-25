@@ -120,6 +120,65 @@ def fetch_training_load(client: Any, cdate: str | None = None) -> dict[str, Any]
     except Exception as exc:
         out["lthr_error"] = str(exc)
 
+    ftp_raw: Any = None
+    try:
+        if hasattr(client, "get_cycling_ftp"):
+            ftp_raw = client.get_cycling_ftp()
+    except Exception as exc:
+        out["ftp_error"] = str(exc)
+
+    ftp_entry: dict[str, Any] = {}
+    if isinstance(ftp_raw, list) and ftp_raw and isinstance(ftp_raw[0], dict):
+        ftp_entry = ftp_raw[0]
+    elif isinstance(ftp_raw, dict):
+        ftp_entry = ftp_raw
+
+    ftp_val = (
+        ftp_entry.get("functionalThresholdPower")
+        if ftp_entry.get("functionalThresholdPower") is not None
+        else ftp_entry.get("ftp")
+        if ftp_entry.get("ftp") is not None
+        else ftp_entry.get("value")
+    )
+    w_kg_val = (
+        ftp_entry.get("powerToWeight")
+        if ftp_entry.get("powerToWeight") is not None
+        else ftp_entry.get("wPerKg")
+        if ftp_entry.get("wPerKg") is not None
+        else ftp_entry.get("w_per_kg")
+    )
+
+    lthr_dict = out.get("lthr") if isinstance(out.get("lthr"), dict) else {}
+    shr = (
+        lthr_dict.get("speed_and_heart_rate")
+        if isinstance(lthr_dict.get("speed_and_heart_rate"), dict)
+        else {}
+    )
+    lthr_cycling_val = (
+        shr.get("heartRateCycling")
+        if shr.get("heartRateCycling") is not None
+        else lthr_dict.get("heartRateCycling")
+        if lthr_dict.get("heartRateCycling") is not None
+        else lthr_dict.get("cyclingHeartRate")
+    )
+
+    vo2_cyc = out.get("vo2max_cycling")
+
+    out["cycling_power"] = {
+        "ftp_watts": round(float(ftp_val))
+        if isinstance(ftp_val, (int, float)) and ftp_val > 0
+        else None,
+        "w_per_kg": round(float(w_kg_val), 2)
+        if isinstance(w_kg_val, (int, float)) and w_kg_val > 0
+        else None,
+        "vo2max_cycling": round(float(vo2_cyc), 1)
+        if isinstance(vo2_cyc, (int, float)) and vo2_cyc > 0
+        else None,
+        "lthr_cycling": round(float(lthr_cycling_val))
+        if isinstance(lthr_cycling_val, (int, float)) and lthr_cycling_val > 0
+        else None,
+    }
+
     return out
 
 

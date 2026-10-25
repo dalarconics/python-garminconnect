@@ -37,6 +37,21 @@ def summarize_last_activity(raw: dict[str, Any] | None) -> dict[str, Any] | None
     max_hr = raw.get("maxHR")
     training_load = raw.get("activityTrainingLoad")
 
+    avg_power = (
+        raw.get("avgPower")
+        if raw.get("avgPower") is not None
+        else raw.get("averagePower")
+    )
+    max_power = raw.get("maxPower")
+    norm_power = (
+        raw.get("normPower")
+        if raw.get("normPower") is not None
+        else raw.get("normalizedPower")
+    )
+    intensity_factor = raw.get("intensityFactor")
+    training_stress_score = raw.get("trainingStressScore")
+    avg_cadence = raw.get("averageBikingCadenceInRevPerMinute")
+
     return {
         "activity_id": int(activity_id),
         "name": raw.get("activityName") or "Actividad",
@@ -55,6 +70,24 @@ def summarize_last_activity(raw: dict[str, Any] | None) -> dict[str, Any] | None
         else None,
         "training_load": round(float(training_load), 1)
         if isinstance(training_load, (int, float))
+        else None,
+        "avg_power": round(float(avg_power))
+        if isinstance(avg_power, (int, float)) and avg_power > 0
+        else None,
+        "max_power": round(float(max_power))
+        if isinstance(max_power, (int, float)) and max_power > 0
+        else None,
+        "norm_power": round(float(norm_power))
+        if isinstance(norm_power, (int, float)) and norm_power > 0
+        else None,
+        "intensity_factor": round(float(intensity_factor), 2)
+        if isinstance(intensity_factor, (int, float)) and intensity_factor > 0
+        else None,
+        "training_stress_score": round(float(training_stress_score), 1)
+        if isinstance(training_stress_score, (int, float)) and training_stress_score > 0
+        else None,
+        "avg_cadence": round(float(avg_cadence))
+        if isinstance(avg_cadence, (int, float)) and avg_cadence > 0
         else None,
     }
 
