@@ -51,6 +51,13 @@ export type SnapshotPayload = {
     acwr?: number;
     acwr_status?: string;
     vo2max?: number;
+    vo2max_cycling?: number | null;
+    cycling_power?: {
+      ftp_watts?: number | null;
+      w_per_kg?: number | null;
+      vo2max_cycling?: number | null;
+      lthr_cycling?: number | null;
+    } | null;
   };
   last_activity?: {
     activity_id: number;
@@ -67,6 +74,12 @@ export type SnapshotPayload = {
     max_hr?: number | null;
     calories?: number | null;
     training_load?: number | null;
+    avg_power?: number | null;
+    max_power?: number | null;
+    norm_power?: number | null;
+    intensity_factor?: number | null;
+    training_stress_score?: number | null;
+    avg_cadence?: number | null;
   };
   readiness?: { recommendation?: string };
   thresholds?: Record<string, number>;

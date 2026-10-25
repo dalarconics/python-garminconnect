@@ -14,6 +14,28 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.6.0] - 2026-10-25
+
+Versión menor de funcionalidad de `T-0045` (`ADR-002`, `ADR-003`, `ADR-009`, `P22`): incorporación integral de indicadores de potencia de ciclismo en el recolector Python (`FTP`, `W/kg`, `avg_power`, `norm_power`, `max_power`, `IF`, `TSS`, cadencia), visualización en `LastActivityCard` y nueva sección dedicada `/potencia` en el menú lateral con las 7 Zonas de Potencia de Coggan y vatios objetivo para Reto Letras e Ironman 70.3 Cartagena.
+
+### Añadido
+- **Extracción de potencia de ciclismo en el colector Python (`garmin_coaching/collector.py`, `garmin_coaching/last_activity.py`)**:
+  - `fetch_training_load` consulta de forma resiliente `client.get_cycling_ftp()` y consolida en `out["cycling_power"]` los campos `ftp_watts`, `w_per_kg`, `vo2max_cycling` y `lthr_cycling`.
+  - `summarize_last_activity` extrae las métricas opcionales de potenciómetro cuando están presentes en la actividad de Garmin: `avg_power` (W), `max_power` (W), `norm_power` (NP en W), `intensity_factor` (IF), `training_stress_score` (TSS) y `avg_cadence` (rpm).
+- **Módulo de dominio puro de potencia (`apps/web/lib/potencia.ts`)**:
+  - Cálculo 100 % puro (sin dependencias de UI ni infraestructura, cumpliendo `ADR-002` y `P22`) de las **7 Zonas de Potencia del Dr. Andrew Coggan (`Z1` a `Z7`)** en vatios con rangos porcentuales, barras proporcionales y descripción fisiológica.
+  - Cálculo de Índice de Variabilidad (`VI = NP / avg_power`), consolidación de KPIs de ciclismo y fallback transparente a FTP de referencia (`220 W`) cuando el snapshot aún no registra lecturas de potenciómetro.
+  - Prescripción específica de vatios objetivo para **Reto Letras** (`Z3 / Sweet Spot 84–92 % FTP`, `75–85 rpm`) e **Ironman 70.3 Cartagena (90 km)** (`IF 0.78–0.83`, `78–83 % FTP`, `VI ≤ 1.04`).
+- **Nueva vista `/potencia` y acceso en menú lateral (`apps/web/components/DashboardNav.tsx`, `apps/web/app/(dashboard)/potencia/page.tsx`, `apps/web/app/globals.css`)**:
+  - Enlace `/potencia` («Potencia») con icono SVG de rayo (`⚡`) en `DashboardNav` ubicado inmediatamente después de «Tendencia».
+  - Tarjetas KPI superiores (`FTP`, `W/kg`, `VO₂máx Ciclismo`, `NP / VI`, `IF / TSS`), listado visual de las 7 Zonas de Coggan con números tabulares (`tabular-nums`) y tarjetas de objetivos de potencia por reto.
+- **Visualización de potencia en `LastActivityCard` (`apps/web/components/LastActivityCard.tsx`, `apps/web/lib/dashboard.ts`)**:
+  - Renderizado condicional de `Potencia media (W)`, `NP (W)`, `Potencia máx (W)` y resumen de `rpm`, `IF` y `TSS` cuando la última actividad incluye datos de potencia.
+- **Suites de pruebas (`tests/test_last_activity.py`, `apps/web/lib/potencia.test.mjs`)**:
+  - Pruebas unitarias en Python y Node.js validando extracción de FTP y potencia, zonas de Coggan, pureza arquitectónica (`P22`) y componentes de interfaz.
+
+---
+
 ## [0.5.5] - 2026-10-24
 
 Versión de parche de `T-0044` (`ADR-002`, `P02`, `P22`): rediseño interactivo de `PreparationChart` en `/retos` con selector de horizonte temporal (zoom), filtro por reto sincronizado con tabla, inspector interactivo (crosshair + tooltip en vivo), área sombreada con degradado, resolución del recorte derecho y mini barras de progreso.

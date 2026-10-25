@@ -1884,3 +1884,141 @@ a.coach-history-item {
   color: var(--text);
 }
 
+/* --- Vista /potencia (Zonas de Coggan y Objetivos de Potencia) --- */
+.power-reference-banner {
+  border-left: 4px solid #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.power-zones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.power-zone-row {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.power-zone-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.power-zone-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.power-zone-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+}
+
+.power-zone-name {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.power-zone-pct {
+  font-size: 0.8rem;
+}
+
+.power-zone-watts {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.power-zone-bar-track {
+  width: 100%;
+  height: 7px;
+  background: #1e293b;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.power-zone-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.power-zone-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.power-targets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.power-target-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.power-target-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.power-target-title {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+}
+
+.power-target-watt-pill {
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 0.3rem 0.65rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #f8fafc;
+  white-space: nowrap;
+}
+
+.power-target-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1rem;
+  font-size: 0.82rem;
+}
+
+.power-target-rationale {
+  font-size: 0.83rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+
