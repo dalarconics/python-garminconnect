@@ -4,135 +4,55 @@
 
 ## Reglas IES (no negociables)
 
-1. Ninguna ejecucion sin una task valida del ledger `memory/mid/tasks.md`.
-2. El prompt operativo se genera SOLO con `ies prompt <rol> --task T-XXXX`.
-3. Los contratos de rol canonicos viven en el framework: `ies contract <rol>`
-   los imprime.
-4. Las skills canonicas: `ies contract --skill <id>`.
-5. Los modelos se heredan de `config/team.yaml` del framework para la
-   herramienta del proyecto (`ies env show`); una excepcion de rol solo con
-   ADR en `.ies/models.yaml`. Nunca fijes modelos aqui.
-6. Memoria por capas en `memory/` (immediate/mid/long); usa unicamente la
-   memoria seleccionada por el prompt.
-7. Toda entrega va a `deliverables/T-XXXX.md` con el envelope requerido.
-8. Roles single-shot-hitl: una ejecucion, una entrega, aprobacion humana.
-   Sin subagentes y sin loops; la unica excepcion es `coordinator`, que
-   delega exclusivamente mediante tasks del ledger (una task, un prompt,
-   un agente) y nunca edita codigo.
-9. Validaciones: `ies models validate`, `ies memory validate`, `ies doctor`.
-10. Nunca commitees secretos; nunca hagas deploy; nunca ejecutes comandos
-    destructivos.
+1. Ninguna ejecucion sin una task valida del ledger; el prompt operativo se genera
+   SOLO con `ies prompt <rol> --task T-XXXX`.
+2. Contratos y skills: `ies contract <rol>`, `ies contract --skill <id>`; modelos
+   heredados de `config/team.yaml` (`ies env show`), nunca fijados aqui.
+3. Entrega en `deliverables/T-XXXX.md` con `sdlc:` por bloque; usa solo la memoria
+   que selecciona el prompt. Nunca secretos, deploy ni comandos destructivos.
 
-## Disciplina human-in-the-loop
+## Disciplina human-in-the-loop (`ies contract --doc working-discipline`, docs/WORKING_DISCIPLINE.md)
 
-Contrato canonico: `ies contract --doc working-discipline`
-(docs/WORKING_DISCIPLINE.md del framework).
+Aprobaciones conversacionales (`Ok`, `Acepto`, `De una`, `Adelante`, `Continua`,
+`De acuerdo`, `Run`, `Correr`, `Ejecutar`): cubren solo la propuesta inmediatamente
+anterior, no amplian el alcance y autorizan su
+ejecucion si es cerrada. No exigen una segunda confirmacion; no son comandos.
+Controles de persistencia (`salvar`, `guardar`, `actualizar`): solo persisten. Toda
+ejecucion exige prompt cerrado y aprobacion humana explicita. Respuestas en caja
+copiable (Articulo II.4); la HITL hace el handoff al coordinator, que crea tasks y
+subagentes segun SDLC + EARS + SDD, en paralelo si son independientes (Articulo II.5).
 
-Aprobaciones conversacionales (`Ok`, `Acepto`, `De una`, `Adelante`,
-`Continua`, `De acuerdo`, `Run`, `Correr`, `Ejecutar`): cubren solo la
-propuesta inmediatamente anterior, no amplian el alcance y autorizan su
-ejecucion cuando la propuesta es cerrada, ejecutable y no reserva la
-operacion a una ventana externa. No exigen una segunda confirmacion y no son
-comandos de shell ni alias de Typer.
+## Sistema multi-agente SDD (resumen completo: `ies contract --doc sdd`, seccion 13.1)
 
-Controles de persistencia (`salvar`, `guardar`, `actualizar`): autorizan
-unicamente la persistencia definida en el contrato canonico (estado,
-decisiones, contexto, handoff); no aprueban ninguna propuesta y no
-autorizan implementacion, commits, pushes, instalaciones ni despliegues.
+- Destino: SOLO coordinator | planner | implementer | viewer. Orden: `ies spec new`
+  -> plan -> `ies spec approve` -> `ies task add` (`--kind fix` en bugs) ->
+  `ies prompt` -> worktree -> entrega -> viewer -> merge humano. Nadie despliega.
+- Un implementer por task y worktree con `--allowlist` disjunta; `ies git verify --task`
+  antes del viewer (DRIFT = BLOCKING); unica memoria editable por un implementer: el
+  `memory/long/<nombre>.md` de su allowlist (ADR-017).
+- `IES_ACTOR=<rol> ies ...`; `ies doctor` al abrir sesion; `ies task edit --reason`
+  para corregir; `ies gate --task T-XXXX` e `ies constitution check` antes de entregar.
+- Autonomia (`ies spec new`): hitl = Ok por gate; autonomous = un Ok del plan cubre el
+  ciclo con viewer por entrega. El merge a la rama principal siempre es humano.
 
-Toda ejecucion requiere una propuesta o prompt cerrado generado con
-`ies prompt <rol> --task T-XXXX` y aprobacion humana explicita antes de
-actuar. Si la propuesta reserva transporte externo, la aprobacion genera el
-paquete; en caso contrario permite ejecutar a la ventana designada.
+## Comandos
 
-Las respuestas de la ventana HITL y del coordinator se entregan en una unica
-caja copiable (`Copia y pega solo esta caja en este chat:` o
-`Pega esto en <agente>:`) cuando la herramienta no hace el handoff
-automatico (Articulo II.4 de la constitucion).
+- `ies status` | `IES_ACTOR=<rol> ies gate --task T-XXXX` | `ies git verify --task T-XXXX`
+- arquitectura-python: `lint-imports` (de .ies/gate.yaml)
+- arquitectura-web: `npx --prefix apps/web depcruise --config apps/web/.dependency-cruiser.cjs apps/web/lib` (de .ies/gate.yaml)
 
-La ventana HITL hace el handoff al coordinator; el coordinator crea tasks,
-subagentes y especialistas segun SDLC + EARS + SDD, tantos como el plan
-aprobado requiera y en paralelo cuando las tasks sean independientes
-(Articulo II.5).
+## Definicion de terminado
 
-## Sistema multi-agente SDD
+- scope (allowlist sin DRIFT), deliverable (`result`, `verification`, `sdlc`),
+  constitution (sin BLOCKING), secrets (ninguno), commands (`.ies/gate.yaml` en PASS
+  sobre el HEAD, tracked-clean) y sdlc-evidence coherente con tests, diff y CHANGELOG.
+- Desplegable: SemVer + CHANGELOG (ADR-009). Task `fix`: el test que reproduce se
+  commitea antes del fix y no cambia despues.
 
-Metodologia canonica: `ies contract --doc sdd` (HITL + Spec-Driven
-Development + EARS). Constitucion: Articulos I-VII heredados del framework
-(`ies contract --doc constitution`) mas las enmiendas de
-`memory/long/constitution.md` (ADR-019).
+## Errores frecuentes
 
-- Destino de toda task: SOLO el equipo SDD (coordinator, planner, implementer,
-  viewer). Mapeo: especificar/planificar -> planner; implementar, corregir,
-  configurar, migrar, documentar -> implementer; verificar, revisar, validar
-  -> viewer (incluida la causa raiz de un fallo); orquestar -> coordinator.
-  Los roles especialistas (researcher, worker-local, ceo-strategy, finance,
-  operations-health, marketing, sales) solo son destino si estan habilitados
-  en `.ies/environment.yaml` (`ies env set --specialist ...`) o con
-  `--specialist-reason "causa concreta"`; el CLI rechaza el destino sin ello.
-- Roles SDD: `coordinator` (agente principal: dimensiona, crea tasks,
-  despacha, consolida evidencia; no implementa), `planner` (spec.md con
-  requisitos EARS + plan.md + descomposicion), `implementer` (una task
-  aprobada, en su worktree, tests primero; se clona uno por task paralela) y
-  `viewer` (verificacion solo lectura, hallazgos BLOCKING/NON_BLOCKING).
-- Orden obligatorio: spec -> plan -> aprobacion humana (`ies spec approve`)
-  -> task (`ies task add`) -> prompt (`ies prompt`) -> worktree -> entrega ->
-  viewer -> humano. Las specs viven en `specs/NNN-slug/`, se crean con
-  `ies spec new <slug>` y su `status` nunca se edita a mano. El despliegue lo
-  ejecuta el humano siguiendo la seccion 8 del plan; ningun agente despliega.
-- Paralelismo: un implementer por task y worktree
-  (`ies git checkpoint --task T-XXXX --worktree`); allowlist declarada en
-  cada task (`--allowlist`, obligatoria para implementer; el CLI rechaza el
-  solape entre tasks paralelas del mismo padre salvo `--depends`); dentro
-  del worktree `ies` escribe ledger y estado en el repo principal;
-  `ies git verify --task T-XXXX` antes del viewer (DRIFT = BLOCKING); el
-  merge lo hace siempre el humano (ADR-012). La unica memoria que un
-  implementer edita es el documento `memory/long/<nombre>.md` que su
-  allowlist nombra de forma explicita (task documental de `ies update
-  --create-stale-doc-task`), siempre en su worktree y sin sellar el
-  frontmatter (`--sync-doc` es de human o coordinator) (ADR-017).
-- Bloques SDLC: requisitos, diseno, implementacion,
-  pruebas, release, despliegue, operacion-mantenimiento, seguridad. Cada
-  contrato declara los suyos (`sdlc_blocks`) y cada entrega declara en su
-  frontmatter `sdlc:` el estado por bloque (`cubierto | parcial | no-aplica`)
-  justificado bajo `## SDLC`; el viewer lo verifica y `ies task done` avisa
-  si falta (ADR-011).
-- Actor (ADR-013): todo comando `ies` de un agente se ejecuta como
-  `IES_ACTOR=<rol> ies ...`; la auditoria registra actor y fuente (env,
-  terminal, worktree). Solo human y coordinator mutan ledger, specs, memoria
-  y checkpoints; `--human-override` solo lo usan human o coordinator.
-- Contexto (ADR-015): al abrir sesion, `IES_ACTOR=coordinator ies doctor`
-  confirma la raiz de control; si el cwd no es un proyecto IES, el error
-  sugiere el proyecto cercano. `ies init` exige ruta explicita fuera de una
-  terminal y rechaza rutas sospechosas salvo `--accept-path`.
-- Correcciones del ledger (ADR-014): `ies task edit T-XXXX --reason ...`
-  (backlog, ready o blocked); nunca editar tasks.md ni usar la API interna.
-- Gate de maquina (ADR-016): `ies gate --task T-XXXX` evalua alcance,
-  entrega, constitucion, secretos, comandos de `.ies/gate.yaml` (tests, lint,
-  build) y la coherencia de `sdlc:` con la evidencia; `ies task done` exige
-  su PASS sobre el commit actual de task/T-XXXX. El viewer ejecuta el gate
-  (builds en solo lectura: ningun archivo versionado puede cambiar).
-- Constitucion: `ies constitution check` (Articulos I-VII; VII = Clean Code
-  mas regla de dependencia de Clean Architecture en todo proyecto con codigo
-  de aplicacion, declarada en `memory/long/standards.md`; `n/a` solo por
-  ADR; MVVM como patron de presentacion con UI; ADR-018). El viewer lo
-  reporta; `ies task done` bloquea con BLOCKING salvo `--human-override`
-  (ADR-010).
-- Perfil de task (`--profile riguroso|fast-track`): fast-track acelera el
-  transporte y la revision; nunca reduce criterios, tests, backups, rollback
-  ni techos de iteracion.
-- Autonomia (se pregunta UNA vez al crear la spec: `ies spec new`): `hitl` =
-  aprobacion humana en cada gate; `autonomous` = una sola aprobacion del plan
-  cubre todo el ciclo y el coordinator lanza y conduce a planner, implementers
-  y viewer hasta el final sin preguntas intermedias. Puertas de calidad que
-  garantizan la entrega en autonomous: criterios por REQ obligatorios, tests
-  por criterio, viewer por entrega (solo BLOCKING detiene, una ronda correctiva
-  consolidada), `ies task done` exige deliverable con `result: success`, y las
-  condiciones de parada de la disciplina. El merge a la rama principal sigue
-  siendo humano; cualquier bloqueo material detiene el ciclo y se reporta.
-- Colores del ledger (derivados del estado, nunca persistidos): backlog
-  ⚪, ready 🔵, in_progress 🟡, blocked 🔴, done 🟢, superseded 🟣,
-  cancelled ⚫, archived 🟤. No confundir con los emojis de readiness de los
-  reportes `status` de la disciplina (🟢🟡⚪🔴).
+- (sin seccion `## Errores frecuentes` en memory/long/lessons-learned.md; anadela por task documental)
+
+## Reglas completas: `ies contract --doc sdd` | `ies contract --doc working-discipline` | `ies contract <rol>`
 
 Nota: no se fijan modelos en estos archivos; el equipo se hereda de `config/team.yaml` del framework y puede cambiar sin tocar este repo.
