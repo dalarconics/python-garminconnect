@@ -59,10 +59,14 @@ test("REQ-005 / P05: Sincronización reactiva de accessToken en CoachConversatio
     "CoachConversationViewModel debe implementar setAccessToken(token: string | null)"
   );
 
-  // 1. Initial call with null token: no Authorization header
+  // 1. Initial call with null token: Authorization Bearer mvp-direct
   await vm.loadConversations();
   assert.strictEqual(callCount, 1);
-  assert.strictEqual(capturedHeaders["Authorization"], undefined, "Con token null no debe enviarse Authorization");
+  assert.strictEqual(
+    capturedHeaders["Authorization"],
+    "Bearer mvp-direct",
+    "Con token null debe enviarse Authorization Bearer mvp-direct (AC3)"
+  );
   assert.strictEqual(vm.conversations.length, 1);
 
   // 2. Reactive update with valid JWT token
@@ -79,7 +83,11 @@ test("REQ-005 / P05: Sincronización reactiva de accessToken en CoachConversatio
   vm.setAccessToken(null);
   await vm.loadConversations();
   assert.strictEqual(callCount, 3);
-  assert.strictEqual(capturedHeaders["Authorization"], undefined, "Tras volver a null, se retira cabecera Authorization");
+  assert.strictEqual(
+    capturedHeaders["Authorization"],
+    "Bearer mvp-direct",
+    "Tras volver a null, usa Bearer mvp-direct (AC3)"
+  );
 });
 
 test("REQ-006 / P06: Captura resiliente de respuestas no exitosas (401 y 500) y caídas de red en loadConversations() sin crash", async () => {

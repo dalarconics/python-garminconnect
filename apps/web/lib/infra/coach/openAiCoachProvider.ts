@@ -3,17 +3,45 @@ import { CoachProviderError } from "../../chat/domain/errors";
 
 export { CoachProviderError };
 
+export const EXCLUSIVE_MODEL = "meta-muse-spark";
+export const DEFAULT_META_MUSE_API_URL = "https://api.meta.ai/v1/chat/completions";
+
+function normalizeChatCompletionsUrl(rawUrl?: string): string {
+  const trimmed = (rawUrl || "").trim().replace(/\/+$/, "");
+  if (!trimmed) {
+    return DEFAULT_META_MUSE_API_URL;
+  }
+  if (trimmed.endsWith("/chat/completions")) {
+    return trimmed;
+  }
+  return `${trimmed}/chat/completions`;
+}
+
 export interface OpenAiCoachProviderOptions {
   apiKey?: string;
+  baseUrl?: string;
+  model?: string;
   fetchFn?: typeof fetch;
 }
 
 export class OpenAiCoachProvider implements ICoachProviderPort {
   private readonly apiKey: string;
+  private readonly baseUrl: string;
+  private readonly model: string;
   private readonly fetchFn: typeof fetch;
 
   constructor(options: OpenAiCoachProviderOptions = {}) {
-    this.apiKey = options.apiKey || process.env.OPENAI_API_KEY || "";
+    this.apiKey =
+      options.apiKey ||
+      process.env.META_MUSE_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      "";
+    this.baseUrl = normalizeChatCompletionsUrl(
+      options.baseUrl || process.env.META_MUSE_BASE_URL
+    );
+    this.model =
+      (options.model || process.env.META_MUSE_MODEL || EXCLUSIVE_MODEL).trim() ||
+      EXCLUSIVE_MODEL;
     this.fetchFn = options.fetchFn || fetch;
   }
 
@@ -29,21 +57,22 @@ export class OpenAiCoachProvider implements ICoachProviderPort {
       );
     }
 
+    const fullMessages = [
+      { role: "system" as const, content: contextPrompt },
+      ...recentMessages.map((m) => ({
+        role: m.role as "user" | "assistant" | "system",
+        content: m.content,
+      })),
+    ];
+
     const payload = {
-      model: "gpt-6-luna",
-      reasoning_effort: "high",
-      messages: [
-        { role: "system", content: contextPrompt },
-        ...recentMessages.map((m) => ({
-          role: m.role as "user" | "assistant" | "system",
-          content: m.content,
-        })),
-      ],
+      model: this.model,
+      messages: fullMessages,
     };
 
     let res: Response;
     try {
-      res = await this.fetchFn("https://api.openai.com/v1/chat/completions", {
+      res = await this.fetchFn(this.baseUrl, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
@@ -61,7 +90,7 @@ export class OpenAiCoachProvider implements ICoachProviderPort {
     }
 
     if (!res.ok) {
-      let errorMessage = `OpenAI respondió con código ${res.status}`;
+      let errorMessage = `Meta Muse respondió con código ${res.status}`;
       try {
         const errorBody = (await res.json()) as { error?: { message?: string } };
         if (errorBody?.error?.message) {
@@ -71,7 +100,7 @@ export class OpenAiCoachProvider implements ICoachProviderPort {
         // Non-JSON response
       }
 
-      throw new CoachProviderError(errorMessage, res.status, `OPENAI_HTTP_${res.status}`);
+      throw new CoachProviderError(errorMessage, res.status, `META_MUSE_HTTP_${res.status}`);
     }
 
     let data: { choices?: { message?: { content?: string } }[] };
@@ -89,3 +118,5 @@ export class OpenAiCoachProvider implements ICoachProviderPort {
     return reply;
   }
 }
+
+export const MetaMuseCoachProvider = OpenAiCoachProvider;

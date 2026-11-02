@@ -21,7 +21,8 @@ No Garmin credentials on Vercel — data comes from Supabase only.
 
 ## Versión y cambios
 
-- **Versión actual**: `0.6.0`
+- **Versión actual**: `0.7.0`
+- **Novedades en 0.7.0 (T-0046)**: migración del proveedor LLM del Coach a Meta Muse (`meta-muse-spark`, insignia `Meta Muse · Spark`) configurable por entorno (`META_MUSE_API_KEY`, `META_MUSE_BASE_URL`, `META_MUSE_MODEL`) y habilitación del flujo directo `MVP_USER_ID` (`Bearer mvp-direct`) en `/api/chat` con contexto real de Garmin sin exigir login OTP previo.
 - **Novedades en 0.6.0 (T-0045)**: incorporación de indicadores de potencia de ciclismo en el colector Python (`FTP`, `W/kg`, `avg_power`, `norm_power`, `max_power`, `IF`, `TSS` y cadencia), visualización en `LastActivityCard` y nueva ruta `/potencia` en el menú lateral con las 7 Zonas de Potencia de Coggan (`Z1`–`Z7`) y prescripción de vatios objetivo para Reto Letras e Ironman 70.3 Cartagena.
 - **Novedades en 0.5.5 (T-0044)**: rediseño interactivo de `PreparationChart` en `/retos` con selector de horizonte temporal (zoom corto, medio y temporada completa), filtro por reto sincronizado con tabla, inspector interactivo con crosshair y tarjeta de detalle en vivo, área suave con degradado sin saturación de círculos, resolución del recorte derecho en valores proyectados y mini barras de progreso.
 - **Novedades en 0.5.4 (T-0043)**: rediseño y centrado estilo Hero de `CoachChat` en panel principal (max-width 760px, saludo `Hola Diego, ¿cómo te ayudo?`, acciones rápidas y retiro de recorte 28vh) e impresión de versiones actual y anterior con fechas de despliegue en barra lateral (`DashboardNav`).

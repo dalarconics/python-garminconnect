@@ -9,9 +9,13 @@ type Props = {
 
 export function CoachModelSelect(_props: Props = {}) {
   return (
-    <div className="coach-model-select coach-model-static" aria-label="Modelo exclusivo">
+    <div
+      className="coach-model-select coach-model-static"
+      aria-label="Modelo exclusivo"
+      title="Modelo exclusivo de entrenamiento: Meta Muse Spark"
+    >
       <span className="coach-model-icon" aria-hidden="true">✦</span>
-      <span className="coach-model-badge">GPT-6 Luna · High</span>
+      <span className="coach-model-badge">Meta Muse · Spark</span>
     </div>
   );
 }

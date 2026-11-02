@@ -47,7 +47,7 @@ test("REQ-006 & REQ-008 / P06 & P08: Envío exitoso guarda mensaje, muestra esta
           },
           revision: 2,
           reply: "Respuesta del coach sobre entrenamiento",
-          model: "gpt-6-luna",
+          model: "meta-muse-spark",
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
@@ -277,4 +277,42 @@ test("REQ-007 / P07: Paginación carga siguientes páginas sin descartar convers
     vm.conversations.length > 4,
     "El historial sincronizado no debe estar recortado a 4 como el legado"
   );
+});
+
+test("AC3: useCoachConversation envía Authorization: Bearer mvp-direct cuando no hay sesión OTP activa", async () => {
+  let capturedAuthHeader = null;
+  const mockFetch = createMockFetch({
+    "POST /api/chat": async (_url, options) => {
+      capturedAuthHeader = options.headers?.Authorization || options.headers?.authorization;
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          message: {
+            id: "msg-mvp-1",
+            conversationId: "conv-mvp-1",
+            sequence: 2,
+            role: "assistant",
+            content: "Respuesta directa en modo MVP",
+            createdAt: new Date().toISOString(),
+          },
+          revision: 2,
+          reply: "Respuesta directa en modo MVP",
+          model: "meta-muse-spark",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    },
+  });
+
+  const vm = useCoachConversationLogic({
+    conversationId: "conv-mvp-1",
+    initialRevision: 1,
+    accessToken: null,
+    customFetch: mockFetch,
+  });
+
+  vm.setDraft("¿Cómo va mi preparación?");
+  const sent = await vm.sendMessage();
+  assert.strictEqual(sent, true);
+  assert.strictEqual(capturedAuthHeader, "Bearer mvp-direct");
 });
