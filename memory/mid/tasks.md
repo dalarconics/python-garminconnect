@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 47
 source: ies-cli
-last_updated: '2026-11-02T23:19:44Z'
+last_updated: '2026-11-02T23:57:41Z'
 ---
 
 # Task Ledger
@@ -17,7 +17,7 @@ title: Migrar LLM del Coach a Meta Muse y habilitar flujo directo MVP en /api/ch
 project_id: python-garminconnect
 origin: human
 destination: implementer
-status: ready
+status: done
 input: Reemplazar el proveedor exclusivo GPT-6 Luna por Meta Muse (meta-muse-spark)
   configurable por entorno (META_MUSE_API_KEY, META_MUSE_BASE_URL, META_MUSE_MODEL)
   y desbloquear la conexion extremo a extremo del chat en modo directo MVP_USER_ID
@@ -73,18 +73,21 @@ allowlist:
 - deliverables/T-0046.md
 - apps/web/tests/patch-layout-chat/viewmodel-token-sync.test.mjs
 created_at: '2026-11-02T23:10:47Z'
-started_at: null
-completed_at: null
+started_at: '2026-11-02T23:57:41Z'
+completed_at: '2026-11-02T23:57:41Z'
 blocked_reason: null
 superseded_by: null
 superseded_reason: null
 terminal_status: null
-output_ref: null
+output_ref: deliverables/T-0046.md
 approval:
   required: true
   approved_by: null
   approved_at: null
-metrics: {}
+metrics:
+  git_before: daac88466364edd43027eb3f6da63aeb425a882a
+  git_after: daac88466364edd43027eb3f6da63aeb425a882a
+  result: success
 edits:
 - at: '2026-11-02T23:19:11Z'
   actor: coordinator
