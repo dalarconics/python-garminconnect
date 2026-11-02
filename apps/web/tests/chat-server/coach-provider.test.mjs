@@ -36,7 +36,7 @@ test("REQ-015 / P15: OpenAiCoachProvider (MetaMuseCoachProvider) usa meta-muse-s
   };
 
   const provider = new OpenAiCoachProvider({
-    apiKey: "test-meta-muse-key-fake",
+    apiKey: "example-mock-key", // mock fixture
     fetchFn: mockFetch,
   });
 
@@ -85,7 +85,7 @@ test("OpenAiCoachProvider normaliza baseUrl agregando /chat/completions cuando n
   };
 
   const provider = new OpenAiCoachProvider({
-    apiKey: "test-key",
+    apiKey: "example-mock-key", // mock fixture
     baseUrl: "https://api.meta.ai/v1/",
     model: "meta-muse-spark",
     fetchFn: mockFetch,
