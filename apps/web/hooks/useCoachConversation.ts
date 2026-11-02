@@ -97,13 +97,11 @@ export class CoachConversationViewModel implements CoachConversationState {
   }
 
   private getAuthHeaders(): Record<string, string> {
-    const headers: Record<string, string> = {
+    const token = this.accessToken?.trim();
+    return {
       "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "Bearer mvp-direct",
     };
-    if (this.accessToken) {
-      headers["Authorization"] = `Bearer ${this.accessToken}`;
-    }
-    return headers;
   }
 
   setDraft(text: string) {

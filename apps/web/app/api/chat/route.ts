@@ -24,8 +24,7 @@ export async function GET() {
   return Response.json(
     {
       ok: true,
-      model: "gpt-6-luna",
-      reasoning_effort: "high",
+      model: process.env.META_MUSE_MODEL || "meta-muse-spark",
     },
     { headers: NO_STORE_HEADERS }
   );
@@ -34,9 +33,9 @@ export async function GET() {
 export async function POST(request: Request) {
   const start = Date.now();
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.META_MUSE_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    console.error("Missing OPENAI_API_KEY in environment");
+    console.error("Missing META_MUSE_API_KEY / OPENAI_API_KEY in environment");
     return Response.json(
       {
         ok: false,
@@ -169,7 +168,7 @@ export async function POST(request: Request) {
         revision: result.conversation.revision,
         cached: result.cached,
         reply: result.assistantMessage.content,
-        model: "gpt-6-luna",
+        model: process.env.META_MUSE_MODEL || "meta-muse-spark",
       },
       { status: 200, headers: NO_STORE_HEADERS }
     );

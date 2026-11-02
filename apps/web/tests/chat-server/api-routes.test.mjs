@@ -65,3 +65,82 @@ test("API /api/chat valida payload, auth y cache no-store", async () => {
   assert.ok(longRes.status === 400 || longRes.status === 401);
   assert.strictEqual(longRes.headers.get("Cache-Control"), "no-store");
 });
+
+test("AC3: Flujo directo MVP (Bearer mvp-direct) autentica MVP_USER_ID, carga salud sin coach_profile_links y auto-crea conversacion", async () => {
+  const { SupabaseIdentityService } = await import(
+    "../../lib/infra/auth/supabaseIdentityService.ts"
+  );
+  const { SupabaseHealthContext } = await import(
+    "../../lib/infra/health/supabaseHealthContext.ts"
+  );
+  const { SupabaseConversationRepository } = await import(
+    "../../lib/infra/chat/supabaseConversationRepository.ts"
+  );
+  const { MVP_USER_ID } = await import("../../lib/infra/supabase.ts");
+
+  const identity = new SupabaseIdentityService();
+  const auth = await identity.authenticateUser("Bearer mvp-direct");
+  assert.strictEqual(auth.userId, MVP_USER_ID);
+  assert.strictEqual(auth.email, "diego@tricoach.local");
+
+  // Mock Supabase client que no tiene coach_profile_links ni permite escrituras por RLS
+  const mockSupabase = {
+    from: (table) => ({
+      select: () => ({
+        eq: () => ({
+          order: () => ({
+            limit: () => ({
+              maybeSingle: async () => ({ data: null, error: null }),
+            }),
+          }),
+          eq: () => ({
+            maybeSingle: async () => ({ data: null, error: null }),
+            order: () => ({ data: [], error: null }),
+          }),
+          maybeSingle: async () => ({ data: null, error: { message: "no link" } }),
+        }),
+      }),
+      insert: () => ({
+        select: () => ({
+          single: async () => ({ data: null, error: { message: "RLS blocked" } }),
+        }),
+      }),
+      update: () => ({
+        eq: () => ({
+          eq: () => ({
+            select: () => ({
+              single: async () => ({ data: null, error: { message: "RLS blocked" } }),
+            }),
+          }),
+        }),
+      }),
+      upsert: () => ({
+        select: () => ({
+          single: async () => ({ data: null, error: { message: "RLS blocked" } }),
+        }),
+      }),
+    }),
+  };
+
+  const health = new SupabaseHealthContext({ supabaseClient: mockSupabase });
+  const ctx = await health.getHealthContext(MVP_USER_ID);
+  assert.strictEqual(ctx.profileId, MVP_USER_ID);
+  assert.match(ctx.promptText, /Eres el coach de Diego/);
+
+  const repo = new SupabaseConversationRepository({ supabaseClient: mockSupabase });
+  const convId = "00000000-0000-0000-0000-000000000999";
+  const opId = "00000000-0000-0000-0000-000000000888";
+
+  const claim = await repo.claimOperation(MVP_USER_ID, opId, convId, 1, "Hola coach");
+  assert.strictEqual(claim.status, "CLAIMED");
+  assert.strictEqual(claim.conversation.id, convId);
+
+  const completed = await repo.completeOperation(
+    MVP_USER_ID,
+    opId,
+    convId,
+    "Hola Diego, listo para entrenar."
+  );
+  assert.strictEqual(completed.conversation.revision, 2);
+  assert.strictEqual(completed.assistantMessage.content, "Hola Diego, listo para entrenar.");
+});

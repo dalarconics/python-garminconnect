@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+export const CURRENT_APP_VERSION = "0.7.0";
+export const PREVIOUS_APP_VERSION = "0.6.0";
+
 export type ReleaseVersion = {
   version: string;
   date: string;
@@ -58,15 +61,15 @@ export function getSystemVersions(customContent?: string): SystemVersions {
 
   if (!content) {
     return {
-      current: { version: "0.5.4", date: "2026-10-24" },
-      previous: { version: "0.5.3", date: "2026-10-24" },
+      current: { version: CURRENT_APP_VERSION, date: "2026-11-02" },
+      previous: { version: PREVIOUS_APP_VERSION, date: "2026-10-25" },
     };
   }
 
   const releases = parseChangelogVersions(content);
   return {
-    current: releases[0] ?? { version: "0.5.4", date: "2026-10-24" },
-    previous: releases[1] ?? null,
+    current: releases[0] ?? { version: CURRENT_APP_VERSION, date: "2026-11-02" },
+    previous: releases[1] ?? { version: PREVIOUS_APP_VERSION, date: "2026-10-25" },
   };
 }
 

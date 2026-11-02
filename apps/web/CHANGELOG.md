@@ -14,6 +14,26 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ---
 
+## [0.7.0] - 2026-11-02
+
+Versión menor de funcionalidad de `T-0046` (`ADR-002`, `ADR-005`, `ADR-009`): migración del proveedor LLM exclusivo del Coach de `gpt-6-luna` a **Meta Muse (`meta-muse-spark`)** configurable por entorno (`META_MUSE_API_KEY`, `META_MUSE_BASE_URL`, `META_MUSE_MODEL`), insignia informativa estática `Meta Muse · Spark` en `CoachModelSelect.tsx`, y desbloqueo integral del flujo directo `MVP_USER_ID` (`Bearer mvp-direct`) en `/api/chat` y `/api/conversations` sin requerir sesión OTP previa ni fallar con `401`/`403`/`404`.
+
+### Añadido
+- **Soporte de Meta Muse en el proveedor del Coach (`apps/web/lib/infra/coach/openAiCoachProvider.ts`, `apps/web/app/api/chat/route.ts`)**:
+  - Configuración por defecto de `EXCLUSIVE_MODEL = "meta-muse-spark"` y `DEFAULT_META_MUSE_API_URL = "https://api.meta.ai/v1/chat/completions"`, con lectura opcional desde `META_MUSE_MODEL`, `META_MUSE_BASE_URL` (con normalización automática de `/chat/completions`) y `META_MUSE_API_KEY` (con respaldo a `OPENAI_API_KEY`).
+  - Exportación de `MetaMuseCoachProvider` junto a `OpenAiCoachProvider` y envío de payload limpio `{ model, messages }` sin `tools`, `tool_choice`, `temperature`, `top_p` ni `reasoning_effort`.
+- **Flujo directo `MVP_USER_ID` extremo a extremo en Chat (`apps/web/hooks/useCoachConversation.ts`, `apps/web/lib/infra/auth/supabaseIdentityService.ts`, `apps/web/lib/infra/health/supabaseHealthContext.ts`, `apps/web/lib/infra/chat/supabaseConversationRepository.ts`)**:
+  - `useCoachConversation` envía `Authorization: Bearer mvp-direct` cuando no hay sesión OTP activa.
+  - `SupabaseIdentityService` autentica `Bearer mvp-direct` como `MVP_USER_ID` (`diego@tricoach.local`), preservando `401 UnauthorizedError` ante ausencia de header `Authorization` o tokens inválidos.
+  - `SupabaseHealthContext` consulta directamente el snapshot fisiológico real de `MVP_USER_ID` sin exigir fila en `coach_profile_links` (manteniendo la validación `REQ-014` para cualquier otro usuario).
+  - `SupabaseConversationRepository` utiliza `createSupabaseServiceClient() || getSupabaseAnon()`, auto-crea la conversación cuando `ownerId === MVP_USER_ID` y `expectedRevision === 1`, y provee respaldo en memoria ante bloqueos de RLS.
+
+### Cambiado
+- **Insignia estática del modelo (`apps/web/components/CoachModelSelect.tsx`)**: Actualizada a `Meta Muse · Spark` con atributo `title="Modelo exclusivo de entrenamiento: Meta Muse Spark"`, sin elementos `<select>` ni `<option>`.
+- **Suites de pruebas y SemVer `0.7.0` (`apps/web/tests/chat-server/*`, `apps/web/tests/chat-client/*`, `apps/web/lib/versionInfo.ts`, `apps/web/lib/version.test.mjs`)**: Actualización de `CURRENT_APP_VERSION = "0.7.0"` y `PREVIOUS_APP_VERSION = "0.6.0"`.
+
+---
+
 ## [0.6.0] - 2026-10-25
 
 Versión menor de funcionalidad de `T-0045` (`ADR-002`, `ADR-003`, `ADR-009`, `P22`): incorporación integral de indicadores de potencia de ciclismo en el recolector Python (`FTP`, `W/kg`, `avg_power`, `norm_power`, `max_power`, `IF`, `TSS`, cadencia), visualización en `LastActivityCard` y nueva sección dedicada `/potencia` en el menú lateral con las 7 Zonas de Potencia de Coggan y vatios objetivo para Reto Letras e Ironman 70.3 Cartagena.

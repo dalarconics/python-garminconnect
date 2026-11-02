@@ -3,7 +3,7 @@ import type { IHealthContextPort } from "../../chat/application/ports";
 import { HealthProfileNotLinkedError } from "../../chat/domain/errors";
 import { conditionPrompt, type ConditionSnapshot } from "../../condition";
 import { preparationIndex } from "../../preparation";
-import { getSupabaseAnon } from "../supabase";
+import { createSupabaseServiceClient, getSupabaseAnon, MVP_USER_ID } from "../supabase";
 
 const STALE_MS = 18 * 60 * 60 * 1000;
 
@@ -131,10 +131,19 @@ export class SupabaseHealthContext implements IHealthContextPort {
   private readonly supabaseClient: SupabaseClient;
 
   constructor(options: SupabaseHealthContextOptions = {}) {
-    this.supabaseClient = options.supabaseClient || getSupabaseAnon();
+    this.supabaseClient =
+      options.supabaseClient || createSupabaseServiceClient() || getSupabaseAnon();
   }
 
   async getHealthContext(ownerId: string): Promise<{ promptText: string; profileId: string }> {
+    if (ownerId === MVP_USER_ID) {
+      const snapshot = await fetchHealthConditionSnapshot(this.supabaseClient, MVP_USER_ID);
+      return {
+        promptText: conditionPrompt(snapshot),
+        profileId: MVP_USER_ID,
+      };
+    }
+
     // 1. Verificar si el owner autenticado tiene vinculo autorizado en coach_profile_links (REQ-014)
     const { data: link, error } = await this.supabaseClient
       .from("coach_profile_links")

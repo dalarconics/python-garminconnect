@@ -25,11 +25,16 @@ test("REQ-017 / P17: CoachModelSelect.tsx es puramente estático e informativo s
     "CoachModelSelect.tsx no debe contener etiquetas <option"
   );
 
-  // Debe contener la identificación estática exclusiva de GPT-6 Luna · High
+  // Debe contener la identificación estática exclusiva de Meta Muse · Spark
   assert.match(
     content,
-    /GPT-6 Luna\s*·\s*High/i,
-    "CoachModelSelect.tsx debe mostrar el texto informativo estático 'GPT-6 Luna · High' (REQ-017)"
+    /Meta Muse\s*·\s*Spark/i,
+    "CoachModelSelect.tsx debe mostrar el texto informativo estático 'Meta Muse · Spark' (REQ-017)"
+  );
+  assert.match(
+    content,
+    /Modelo exclusivo de entrenamiento:\s*Meta Muse Spark/i,
+    "CoachModelSelect.tsx debe incluir el title informativo de Meta Muse Spark"
   );
 });
 

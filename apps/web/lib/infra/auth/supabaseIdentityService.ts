@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IIdentityService } from "../../chat/application/ports";
 import { UnauthorizedError } from "../../chat/domain/errors";
-import { getSupabaseAnon } from "../supabase";
+import { getSupabaseAnon, MVP_USER_ID } from "../supabase";
 
 export interface SupabaseIdentityServiceOptions {
   supabaseClient?: SupabaseClient;
@@ -26,7 +26,13 @@ export class SupabaseIdentityService implements IIdentityService {
       throw new UnauthorizedError("Formato de autorización no válido. Debe ser Bearer <token>");
     }
 
-    const token = match[1];
+    const token = match[1].trim();
+    if (token === "mvp-direct") {
+      return {
+        userId: MVP_USER_ID,
+        email: "diego@tricoach.local",
+      };
+    }
 
     const {
       data: { user },
