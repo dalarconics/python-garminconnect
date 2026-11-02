@@ -2,7 +2,7 @@
 schema_version: 1
 project_id: python-garminconnect
 layer: mid
-last_updated: '2026-10-25T17:33:04Z'
+last_updated: '2026-11-02T23:58:52Z'
 source: ies metrics
 confidence: n/a
 ---
@@ -58,6 +58,19 @@ scope: session
 scope_id: S-20261025-004
 wall_time: 0.0
 active_time: 0.0
+paused_time: 0.0
+overhead_time: 0.0
+result: success
+```
+
+## session S-20261102-005 (2026-11-02T23:58:52Z)
+
+```yaml
+recorded_at: '2026-11-02T23:58:52Z'
+scope: session
+scope_id: S-20261102-005
+wall_time: 2944.0
+active_time: 2944.0
 paused_time: 0.0
 overhead_time: 0.0
 result: success
