@@ -3,7 +3,7 @@ schema_version: 1
 project_id: python-garminconnect
 next_id: 47
 source: ies-cli
-last_updated: '2026-11-02T23:10:47Z'
+last_updated: '2026-11-02T23:19:44Z'
 ---
 
 # Task Ledger
@@ -71,6 +71,7 @@ allowlist:
 - apps/web/package.json
 - apps/web/package-lock.json
 - deliverables/T-0046.md
+- apps/web/tests/patch-layout-chat/viewmodel-token-sync.test.mjs
 created_at: '2026-11-02T23:10:47Z'
 started_at: null
 completed_at: null
@@ -84,5 +85,11 @@ approval:
   approved_by: null
   approved_at: null
 metrics: {}
-edits: []
+edits:
+- at: '2026-11-02T23:19:11Z'
+  actor: coordinator
+  reason: Actualizar test de cabecera Authorization con Bearer mvp-direct cuando accessToken
+    es null
+  fields:
+  - allowlist
 ```
