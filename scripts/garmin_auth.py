@@ -250,9 +250,7 @@ def login_client(
             )
         return client
     except Exception as exc:
-        _LOGGER.warning(
-            "Could not login with stored tokens: %s", _sanitize_error(exc)
-        )
+        _LOGGER.warning("Could not login with stored tokens: %s", _sanitize_error(exc))
 
     if token_file.is_file() and restore_tokens_from_supabase(store):
         try:
