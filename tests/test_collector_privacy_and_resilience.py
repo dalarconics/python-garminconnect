@@ -227,8 +227,12 @@ def test_deploy_web_vercel_script_configured_for_root_directory():
     assert "deploy --prebuilt --prod --yes" in content
 
 
-def test_semver_053_group_r_consistency():
-    """Verify SemVer 0.5.3 consistency across all Group R files."""
+def test_semver_group_r_consistency():
+    """Verify SemVer consistency across all Group R files.
+
+    The current version comes from apps/web/package.json (canonical, ADR-009);
+    the 0.5.3 release of T-0040 (DEC-004, REQ-005) must stay in the history.
+    """
     pkg_path = REPO_ROOT / "apps/web/package.json"
     lock_path = REPO_ROOT / "apps/web/package-lock.json"
     changelog_path = REPO_ROOT / "apps/web/CHANGELOG.md"
@@ -236,20 +240,22 @@ def test_semver_053_group_r_consistency():
     readme_path = REPO_ROOT / "apps/web/README.md"
 
     pkg = json.loads(pkg_path.read_text(encoding="utf-8"))
-    assert pkg["version"] == "0.5.3"
+    version = pkg["version"]
 
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
-    assert lock["version"] == "0.5.3"
+    assert lock["version"] == version
     if "packages" in lock and "" in lock["packages"]:
-        assert lock["packages"][""]["version"] == "0.5.3"
+        assert lock["packages"][""]["version"] == version
 
     changelog = changelog_path.read_text(encoding="utf-8")
+    assert f"## [{version}]" in changelog
     assert "## [0.5.3]" in changelog
     assert "DEC-004" in changelog
     assert "REQ-005" in changelog
 
     test_content = test_path.read_text(encoding="utf-8")
-    assert "0.5.3" in test_content
+    assert version in test_content
 
     readme_content = readme_path.read_text(encoding="utf-8")
+    assert version in readme_content
     assert "0.5.3" in readme_content
