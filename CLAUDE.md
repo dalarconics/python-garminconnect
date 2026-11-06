@@ -64,7 +64,8 @@ subagentes segun SDLC + EARS + SDD, en paralelo si son independientes (Articulo 
 ## Comandos
 
 - `ies status` | `IES_ACTOR=<rol> ies gate --task T-XXXX` | `ies git verify --task T-XXXX`
-- sin comandos declarados en .ies/gate.yaml (declara tests, lint, build y on_edit)
+- arquitectura-python: `lint-imports` (de .ies/gate.yaml)
+- arquitectura-web: `npx --prefix apps/web depcruise --config apps/web/.dependency-cruiser.cjs apps/web/lib` (de .ies/gate.yaml)
 
 ## Definicion de terminado
 
