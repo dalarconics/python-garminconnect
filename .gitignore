@@ -183,3 +183,9 @@ logs/*.log
 .ies/gates/
 *.lock
 # <<< ies-os
+
+# >>> ies-os (entradas anadidas por ies; ADR-015)
+.ies/metrics/
+.ies/worklog/
+.ies/local.yaml
+# <<< ies-os
